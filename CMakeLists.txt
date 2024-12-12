@@ -4,6 +4,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
+set(SFML_BUILD_AUDIO OFF)
+set(SFML_BUILD_NETWORK OFF)
+
 project(doomlike
 	DESCRIPTION "A DOOM-like OpenGL-based renderer practice"
 	VERSION 0.1.0
