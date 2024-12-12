@@ -19,8 +19,10 @@ main(void)
 
     Player player;
 
+	sf::Clock clock;
     while (window.isOpen())
     {
+    	float delta = clock.restart().asSeconds();
         sf::Event event;
 
         while (window.pollEvent(event))
@@ -37,7 +39,7 @@ main(void)
             }
         }
 
-        player.Update();
+        player.Update(delta);
 
         window.clear();
 

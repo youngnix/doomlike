@@ -8,10 +8,11 @@
 Player::Player()
 {
     this->rect.setSize(sf::Vector2<float>(16, 16));
+    this->speed = 200;
 }
 
 void
-Player::Update()
+Player::Update(float delta)
 {
     // Determine direction based on input axis
     sf::Vector2<float> direction = {
@@ -25,7 +26,7 @@ Player::Update()
 		direction /= length;
 	}
 
-	this->rect.setPosition(this->rect.getPosition() + direction);
+	this->rect.setPosition(this->rect.getPosition() + direction * this->speed * delta);
 }
 
 void

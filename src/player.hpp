@@ -9,8 +9,9 @@ class Player
 {
 public:
 	Player();
-    void Update();
+	void Update(float delta);
 	void Draw(sf::RenderWindow &w);
+	float speed;
 private:
     sf::RectangleShape rect;
 };
