@@ -4,6 +4,7 @@
 #include "SFML/Window/Event.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "SFML/Window/WindowStyle.hpp"
+#include "player.hpp"
 
 int
 main(void)
@@ -15,6 +16,8 @@ main(void)
     settings.minorVersion = 3;
 
     sf::RenderWindow window(sf::VideoMode(640, 360), "doomlike", sf::Style::Default, settings);
+
+    Player player;
 
     while (window.isOpen())
     {
@@ -34,7 +37,11 @@ main(void)
             }
         }
 
+        player.Update();
+
         window.clear();
+
+        player.Draw(window);
 
         window.display();
     }
