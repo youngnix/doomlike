@@ -1,14 +1,20 @@
 #include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/OpenGL.hpp"
+#include "SFML/Window/ContextSettings.hpp"
 #include "SFML/Window/Event.hpp"
 #include "SFML/Window/VideoMode.hpp"
-#include <SFML/Graphics.hpp>
-#include <SFML/Main.hpp>
-#include <SFML/Window.hpp>
+#include "SFML/Window/WindowStyle.hpp"
 
 int
 main(void)
 {
-    sf::RenderWindow window(sf::VideoMode(640, 360), "doomlike");
+    // Configures the OpenGL context used by SFML
+    sf::ContextSettings settings;
+
+    settings.majorVersion = 3;
+    settings.minorVersion = 3;
+
+    sf::RenderWindow window(sf::VideoMode(640, 360), "doomlike", sf::Style::Default, settings);
 
     while (window.isOpen())
     {
