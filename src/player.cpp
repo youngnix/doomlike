@@ -5,6 +5,7 @@
 #include "kinematics.hpp"
 #include <cmath>
 
+// Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
 Player::Player() : kinematics(300, 1.2, 0.6)
 {
 	this->rect.setPosition(0, 0);
