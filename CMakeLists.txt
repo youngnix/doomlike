@@ -14,7 +14,7 @@ project(doomlike
 
 add_subdirectory(vendor/SFML/)
 
-add_executable(${PROJECT_NAME} src/main.cpp src/player.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/player.cpp src/kinematics.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE vendor/SFML/include/)
 target_link_libraries(${PROJECT_NAME} PRIVATE sfml-graphics)
