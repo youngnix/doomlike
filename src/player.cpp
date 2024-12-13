@@ -10,7 +10,7 @@ Player::Player() : kinematics(300, 1.2, 0.6)
 	this->rect.setPosition(0, 0);
 	this->rect.setSize(sf::Vector2f(16, 16));
 	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
-	this->rect.setRotation(90 * 3.14 / 180);
+	kinematics.angle = 90 * 3.14 / 180;
 }
 
 void
