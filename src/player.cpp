@@ -9,20 +9,26 @@ Player::Player() : kinematics(300, 1.2, 0.6)
 {
 	this->rect.setPosition(0, 0);
 	this->rect.setSize(sf::Vector2f(16, 16));
+	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
 }
 
 void
 Player::Update(float delta)
 {
     // Determine direction based on input axis
-    sf::Vector2<float> direction = {
+    sf::Vector2<float> input = {
         static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A)),
         static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W)),
     };
 
-    auto pos = this->kinematics.ApplyVector(delta, direction);
+    float rotate = sf::Keyboard::isKeyPressed(sf::Keyboard::Left) - sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+
+    this->kinematics.angle -= rotate * (3.14 / 180);
+
+    auto pos = this->kinematics.Apply(delta, input);
 
     this->rect.setPosition(this->rect.getPosition() + pos);
+    this->rect.setRotation(this->kinematics.angle * 180/3.1415);
 }
 
 void
