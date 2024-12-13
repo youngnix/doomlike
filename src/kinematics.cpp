@@ -7,8 +7,11 @@ Kinematics::Kinematics(float speed, float accel, float decel)
     this->speed = speed;
     this->accel = accel;
     this->decel = decel;
+    this->angle = 0;
+    this->velocity = sf::Vector2f();
 }
 
+// Linearly interpolates a Vector2. This function should be eventually moved.
 static sf::Vector2f
 lerpVector2f(sf::Vector2f a, sf::Vector2f b, float c)
 {
@@ -18,20 +21,21 @@ lerpVector2f(sf::Vector2f a, sf::Vector2f b, float c)
 sf::Vector2f
 Kinematics::Apply(float delta, sf::Vector2<float> input)
 {
+    // Normalizes the vector in case it is not normalized using the pythagorean theorem.
     float length = std::sqrt(std::pow(input.x, 2) + std::pow(input.y, 2));
-
     if (length != 0)
     {
         input /= length;
     }
 
+    // Rotate our direction vector accordingly to our angle
     float x = input.x * cos(this->angle) - input.y * sin(this->angle);
     float y = input.x * sin(this->angle) + input.y * cos(this->angle);
 
     input.x = x;
     input.y = y;
 
-    // whether we should accelerate or decelerate
+    // whether we should accelerate or decelerate based off of the input
     if (input != sf::Vector2<float>())
     {
         this->velocity = lerpVector2f(this->velocity, input * this->speed * delta, this->accel);
