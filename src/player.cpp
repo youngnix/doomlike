@@ -10,6 +10,7 @@ Player::Player() : kinematics(300, 1.2, 0.6)
 	this->rect.setPosition(0, 0);
 	this->rect.setSize(sf::Vector2f(16, 16));
 	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
+	this->rect.setRotation(90 * 3.14 / 180);
 }
 
 void
@@ -23,7 +24,7 @@ Player::Update(float delta)
 
     float rotate = sf::Keyboard::isKeyPressed(sf::Keyboard::Left) - sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
 
-    this->kinematics.angle -= rotate * (3.14 / 180);
+    this->kinematics.angle -= rotate * 90 * (3.14 / 180) * delta;
 
     auto pos = this->kinematics.Apply(delta, input);
 
