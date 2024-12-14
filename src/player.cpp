@@ -20,7 +20,7 @@ Player::Player() : kinematics(300, 1.2, 0.6) {
 	this->rect.setPosition(0, 0);
 	this->rect.setSize(sf::Vector2f(16, 16));
 	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
-	kinematics.angle = 90 * 3.14 / 180;
+	kinematics.angle = 90 * PI / 180;
 }
 
 void Player::Update(float delta) {
@@ -37,8 +37,7 @@ void Player::Update(float delta) {
     auto pos = this->kinematics.Apply(delta, input);
 
     this->rect.setPosition(this->rect.getPosition() + pos);
-    this->rect.setRotation(rad_to_deg(kinematics.angle));
-    this->rect.setRotation(this->kinematics.angle * 180/3.1415);
+    this->rect.setRotation(this->kinematics.angle * 180/PI);
 }
 
 void Player::Draw(sf::RenderWindow &w) {
