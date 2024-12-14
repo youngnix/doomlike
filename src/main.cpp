@@ -46,12 +46,11 @@ int main(void)
         }
 
         player.Update(delta);
-
         window.clear();
-
         player.Draw(window);
-
         window.display();
+
     }
+
     return 0;
 }

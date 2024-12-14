@@ -1,22 +1,22 @@
 #include "player.hpp"
-#include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/System/Vector2.hpp"
-#include "SFML/Window/Keyboard.hpp"
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include "kinematics.hpp"
 #include <cmath>
 
 // Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
-Player::Player() : kinematics(300, 1.2, 0.6)
-{
+Player::Player() : kinematics(300, 1.2, 0.6) {
+
 	this->rect.setPosition(0, 0);
 	this->rect.setSize(sf::Vector2f(16, 16));
 	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
 	kinematics.angle = 90 * 3.14 / 180;
+
 }
 
-void
-Player::Update(float delta)
-{
+void Player::Update(float delta) {
+
     // Determine direction based on input axis
     sf::Vector2<float> input = {
         static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A)),
@@ -31,10 +31,11 @@ Player::Update(float delta)
 
     this->rect.setPosition(this->rect.getPosition() + pos);
     this->rect.setRotation(this->kinematics.angle * 180/3.1415);
+
 }
 
-void
-Player::Draw(sf::RenderWindow &w)
-{
+void Player::Draw(sf::RenderWindow &w) {
+
     w.draw(this->rect);
+
 }
