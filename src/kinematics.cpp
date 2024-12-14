@@ -24,9 +24,7 @@ Kinematics::Apply(float delta, sf::Vector2<float> input)
     // Normalizes the vector in case it is not normalized using the pythagorean theorem.
     float length = std::sqrt(std::pow(input.x, 2) + std::pow(input.y, 2));
     if (length != 0)
-    {
         input /= length;
-    }
 
     // Rotate our direction vector accordingly to our angle
     float x = input.x * cos(this->angle) - input.y * sin(this->angle);
