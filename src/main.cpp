@@ -52,15 +52,16 @@ int main(void)
             }
         }
 
+        window.clear();
+
         player.Update(delta);
 
-        window.clear();
+    	player.raycaster.Cast(window, sf::Vector2i(player.rect.getPosition()), player.kinematics.angle, tilemap);
 
         player.Draw(window);
         tilemap.Draw(window);
 
         window.display();
-
     }
 
     return 0;

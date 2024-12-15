@@ -1,58 +1,67 @@
-#include "kinematics.hpp"
-#include "player.hpp"
+#include "SFML/Graphics/PrimitiveType.hpp"
+#include "tiles.hpp"
+#include "raycast.hpp"
+#include <cmath>
 
 #define screenWidth 640
 #define screenHeight 480
 
+Raycaster::Raycaster() {
+	this->planeX = 0;
+	this->planeY = 0.66;
+}
 
-void raycast(Player &player) {
+Raycaster::Raycaster(float planeX, float planeY) {
+	this->planeX = planeX;
+	this->planeY = planeY;
+}
 
-	float dirX {cos(player.kinematics.angle)};
-	float dirY {sin(player.kinematics.angle)};
+void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2i pos, float angle, Tilemap &tilemap) {
+	float dirX = std::cos(angle);
+	float dirY = std::sin(angle);
 
-	for (int ray = 0; ray < screenWidth; ray++) {
-
+	for (int x = 0; x < screenWidth; x++) {
 		// Calculate ray position and direction
-		double cameraX = 2 * ray / double(screenWidth) - 1;
-		double rayDirX = dirX + player.planeX * cameraX;
-		double rayDirY = dirY + player.planeY * cameraX;
+		double cameraX = 2 * x / double(screenWidth) - 1;
+		double rayDirX = dirX + planeX * cameraX;
+		double rayDirY = dirY + planeY * cameraX;
 		
 		// Which box of the map we are
-		int mapX {int(player.rect.getPosition().x)};
-		int mapY {int(player.rect.getPosition().y)};
+		int mapX = int(pos.x);
+		int mapY = int(pos.y);
 
 		// Length of ray from current position to next x or y-side
 		double sideDistX;
 		double sideDistY;
 
 		// Length of ray from one x or y-side to nex x or y-side
-		double deltaDistX {(rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX)};
-		double deltaDistY {(rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY)};
+		double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
+		double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
 		double perpWallDist;
 
 		int stepX, stepY;
-		int hit {0};
+		int hit = 0;
 		int side;
 
 		// Calculate step and initial sideDist
 		if (rayDirX < 0) {
 			stepX = -1;
-			sideDistX = (player.rect.getPosition().x - mapX) * deltaDistX;
+			sideDistX = (pos.x - mapX) * deltaDistX;
 		} else {
 			stepX = 1;
-			sideDistX = (mapX + 1.0 - player.rect.getPosition().x) * deltaDistX;
+			sideDistX = (mapX + 1.0 - pos.x) * deltaDistX;
 		}
 
 		if (rayDirY < 0) {
 			stepY = -1;
-			sideDistY = (player.rect.getPosition().y - mapY) * deltaDistY;
+			sideDistY = (pos.y - mapY) * deltaDistY;
 		} else {
 			stepY = 1;
-			sideDistY = (mapY + 1.0 - player.rect.getPosition().y) * deltaDistY;
+			sideDistY = (mapY + 1.0 - pos.y) * deltaDistY;
 		}
 
 		// Perform DDA
-		while (hit == 0) {
+		while (!hit) {
 			// Jump to next map square, either in x-direction, or in y-direction
 			if (sideDistX < sideDistY) {
 				sideDistX += deltaDistX;
@@ -65,13 +74,13 @@ void raycast(Player &player) {
 			}
 
 			// Check if ray has hit a wall
-			/*if (worldMap[mapX][mapY] > 0) {
+			if (tilemap.tiles.count(sf::Vector2i(mapX / 16, mapY / 16)) && tilemap.tiles[{mapX / 16, mapY / 16}].type) {
 				hit = 1;
-			}*/
+			}
 		}
 
 		// Calculate distance projected on camera direction
-		if (side==0) {
+		if (side == 0) {
 			perpWallDist = (sideDistX - deltaDistX);
 		} else {
 			perpWallDist = (sideDistY - deltaDistY);
@@ -91,6 +100,11 @@ void raycast(Player &player) {
 			drawEnd = screenHeight - 1;
 		}
 
-	}
+		sf::Vertex line[2] = {
+			sf::Vertex(sf::Vector2f(x, drawStart)),
+			sf::Vertex(sf::Vector2f(x, drawEnd)),
+		};
 
+		window.draw(line, 2, sf::Lines);
+	}
 }
