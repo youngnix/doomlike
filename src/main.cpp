@@ -6,6 +6,9 @@
 #include <SFML/Window/WindowStyle.hpp>
 #include "player.hpp"
 
+#define screenWidth 640
+#define screenHeight 480
+
 int main(void)
 {
     // Configures the OpenGL context used by SFML
@@ -16,7 +19,7 @@ int main(void)
     settings.minorVersion = 3;
 
     // sf::RenderWindow window() create a window called doonlike, set a size for this window, use the default style for this an apply the opengl settings
-    sf::RenderWindow window(sf::VideoMode(640, 360), "doomlike", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "doomlike", sf::Style::Default, settings);
 
     // Initialize the player
     Player player;
