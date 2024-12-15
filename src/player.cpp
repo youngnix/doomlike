@@ -17,10 +17,10 @@ static float deg_to_rad(float deg) {
 
 // Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
 Player::Player() : kinematics(300, 1.2, 0.6) {
-	this->rect.setPosition(0, 0);
+	this->rect.setPosition(100, 100);
 	this->rect.setSize(sf::Vector2f(16, 16));
 	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
-	kinematics.angle = 90 * PI / 180;
+	kinematics.angle = 0 * PI / 180;
 }
 
 void Player::Update(float delta) {

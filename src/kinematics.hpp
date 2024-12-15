@@ -3,8 +3,7 @@
 #include "SFML/System/Vector2.hpp"
 
 // The kinematics component should be used with entities that move.
-class Kinematics
-{
+class Kinematics {
   public:
     float speed;
     sf::Vector2<float> velocity;

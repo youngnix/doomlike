@@ -1,9 +1,8 @@
 #include "kinematics.hpp"
-#include "SFML/System/Vector2.hpp"
+#include <SFML/System/Vector2.hpp>
 #include <cmath>
 
-Kinematics::Kinematics(float speed, float accel, float decel)
-{
+Kinematics::Kinematics(float speed, float accel, float decel) {
     this->speed = speed;
     this->accel = accel;
     this->decel = decel;
@@ -12,15 +11,11 @@ Kinematics::Kinematics(float speed, float accel, float decel)
 }
 
 // Linearly interpolates a Vector2. This function should be eventually moved.
-static sf::Vector2f
-lerpVector2f(sf::Vector2f a, sf::Vector2f b, float c)
-{
+static sf::Vector2f lerpVector2f(sf::Vector2f a, sf::Vector2f b, float c) {
     return sf::Vector2f(a.x + c * (b.x - a.x), a.y + c * (b.y - a.y));
 }
 
-sf::Vector2f
-Kinematics::Apply(float delta, sf::Vector2<float> input)
-{
+sf::Vector2f Kinematics::Apply(float delta, sf::Vector2<float> input) {
     // Normalizes the vector in case it is not normalized using the pythagorean theorem.
     float length = std::sqrt(std::pow(input.x, 2) + std::pow(input.y, 2));
     if (length != 0)
@@ -34,12 +29,10 @@ Kinematics::Apply(float delta, sf::Vector2<float> input)
     input.y = y;
 
     // whether we should accelerate or decelerate based off of the input
-    if (input != sf::Vector2<float>())
-    {
+    if (input != sf::Vector2<float>()) {
         this->velocity = lerpVector2f(this->velocity, input * this->speed * delta, this->accel);
     }
-    else
-    {
+    else {
         this->velocity = lerpVector2f(this->velocity, sf::Vector2f(), this->decel);
     }
 
