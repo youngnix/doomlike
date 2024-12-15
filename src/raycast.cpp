@@ -17,12 +17,13 @@ Raycaster::Raycaster(float planeX, float planeY) {
 }
 
 void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2i pos, float angle, Tilemap &tilemap) {
-	float dirX = std::cos(angle);
-	float dirY = std::sin(angle);
+	float dirX = std::sin(angle);
+	float dirY = -std::cos(angle);
 
 	for (int x = 0; x < screenWidth; x++) {
 		// Calculate ray position and direction
 		double cameraX = 2 * x / double(screenWidth) - 1;
+
 		double rayDirX = dirX + planeX * cameraX;
 		double rayDirY = dirY + planeY * cameraX;
 		
