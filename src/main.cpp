@@ -10,6 +10,9 @@
 #define screenWidth 640
 #define screenHeight 480
 
+#define screenWidth 640
+#define screenHeight 480
+
 int main(void)
 {
     // Configures the OpenGL context used by SFML
