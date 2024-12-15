@@ -5,6 +5,7 @@
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
 #include "player.hpp"
+#include "tiles.hpp"
 
 int main(void)
 {
@@ -23,6 +24,8 @@ int main(void)
 
     // Get Delta Time
 	sf::Clock clock;
+
+	Tilemap tilemap("../res/map01.txt");
 
     // Main Loop that have the responsibility to update the Delta Time, update the Player and render this in the window
     while (window.isOpen())
@@ -46,8 +49,12 @@ int main(void)
         }
 
         player.Update(delta);
+
         window.clear();
+
         player.Draw(window);
+        tilemap.Draw(window);
+
         window.display();
 
     }
