@@ -36,10 +36,8 @@ int main(void)
         // Window Events that for now we have just the close event
         while (window.pollEvent(event))
         {
-            switch (event.type)
-            {
-            case sf::Event::Closed:
-            {
+            switch (event.type) {
+            case sf::Event::Closed: {
                 window.close();
                 break;
             }
