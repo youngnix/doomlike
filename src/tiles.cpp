@@ -15,6 +15,9 @@ Tile::Tile(TileType type) {
 }
 
 Tilemap::Tilemap(std::string path) {
+	width = 0;
+	height = 0;
+
 	std::ifstream ifs(path);
 
 	std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
@@ -22,6 +25,24 @@ Tilemap::Tilemap(std::string path) {
 	int start = 0;
 	int len = 0;
 	sf::Vector2i pos;
+
+	int lineLength = 0;
+
+	// calculate map proportions before parsing map file
+	for (unsigned long i = 0; i < content.size(); i++) {
+		lineLength += 1;
+
+		if (width < lineLength) {
+			width = lineLength;
+		}
+
+		if (content[i] == '\n') {
+			lineLength = 0;
+			height++;
+		}
+	}
+
+	tiles.resize(width * height);
 
 	for (unsigned long i = 0; i < content.size(); i++) {
 		char c = content[i];
@@ -61,16 +82,22 @@ void Tilemap::SetTile(sf::Vector2i pos, TileType type) {
 		return;
 	}
 
-	this->tiles[pos] = Tile(type);
+	this->tiles[pos.y * width + pos.x] = type;
 }
 
 void Tilemap::Draw(sf::RenderWindow &w) {
-	for (const auto &[k, v] : this->tiles) {
-		sf::RectangleShape shape;
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			if (tiles[i * width + j] == TILES_EMPTY) {
+				continue;
+			}
 
-		shape.setSize(sf::Vector2f(16, 16));
-		shape.setPosition(k.x * shape.getSize().x, k.y * shape.getSize().y);
+			sf::RectangleShape shape;
 
-		w.draw(shape);
+			shape.setSize(sf::Vector2f(16, 16));
+			shape.setPosition(j * shape.getSize().x, i * shape.getSize().y);
+
+			w.draw(shape);
+		}
 	}
 }

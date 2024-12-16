@@ -75,7 +75,7 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2i pos, float angle, Ti
 			}
 
 			// Check if ray has hit a wall
-			if (tilemap.tiles.count(sf::Vector2i(mapX / 16, mapY / 16)) && tilemap.tiles[{mapX / 16, mapY / 16}].type) {
+			if (tilemap.tiles[mapY * tilemap.width + mapX]) {
 				hit = 1;
 			}
 		}
