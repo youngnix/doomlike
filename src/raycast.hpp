@@ -8,5 +8,5 @@ struct Raycaster {
 
 	Raycaster();
 	Raycaster(float planeX, float planeY);
-	void Cast(sf::RenderWindow &window, sf::Vector2i pos, float angle, Tilemap &tilemap);
+	void Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Tilemap &tilemap);
 };

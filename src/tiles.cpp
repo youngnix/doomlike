@@ -94,7 +94,7 @@ void Tilemap::Draw(sf::RenderWindow &w) {
 
 			sf::RectangleShape shape;
 
-			shape.setSize(sf::Vector2f(16, 16));
+			shape.setSize(sf::Vector2f(1, 1));
 			shape.setPosition(j * shape.getSize().x, i * shape.getSize().y);
 
 			w.draw(shape);

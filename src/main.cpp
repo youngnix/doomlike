@@ -10,9 +10,6 @@
 #define screenWidth 640
 #define screenHeight 480
 
-#define screenWidth 640
-#define screenHeight 480
-
 int main(void)
 {
     // Configures the OpenGL context used by SFML
@@ -56,7 +53,7 @@ int main(void)
 
         player.Update(delta);
 
-    	player.raycaster.Cast(window, sf::Vector2i(player.rect.getPosition()), player.kinematics.angle, tilemap);
+    	player.raycaster.Cast(window, sf::Vector2f(player.x, player.y), player.kinematics.angle, tilemap);
 
         player.Draw(window);
         tilemap.Draw(window);

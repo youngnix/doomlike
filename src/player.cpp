@@ -16,11 +16,12 @@ static float deg_to_rad(float deg) {
 }
 
 // Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
-Player::Player() : kinematics(100, 1.2, 0.6) {
-	this->rect.setPosition(50, 50);
-	this->rect.setSize(sf::Vector2f(16, 16));
+Player::Player() : kinematics(10, 1.2, 0.6) {
+	this->x = 0;
+	this->y = 0;
+	this->rect.setSize(sf::Vector2f(5, 5));
 	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
-	kinematics.angle = 0 * PI / 180;
+	kinematics.angle = deg_to_rad(90);
 }
 
 void Player::Update(float delta) {
@@ -30,18 +31,19 @@ void Player::Update(float delta) {
         static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W)),
     };
 
-    float rotate = -deg_to_rad(sf::Keyboard::isKeyPressed(sf::Keyboard::Left) - sf::Keyboard::isKeyPressed(sf::Keyboard::Right));
+    float rotate = deg_to_rad(sf::Keyboard::isKeyPressed(sf::Keyboard::Left) - sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) * 360 * delta;
 
-    this->kinematics.angle += rotate * 360 * delta;
+    this->kinematics.angle -= rotate;
 
     auto pos = this->kinematics.Apply(delta, input);
 
-    this->rect.setPosition(this->rect.getPosition() + pos);
-    this->rect.setRotation(this->kinematics.angle * 180/PI);
+    x += pos.x;
+    y += pos.y;
+    this->rect.setPosition(x, y);
+    this->rect.setRotation(rad_to_deg(this->kinematics.angle));
 
-    float planeX = this->raycaster.planeX;
-    this->raycaster.planeX = this->raycaster.planeX * cos(rotate) - this->raycaster.planeY * sin(rotate);
-    this->raycaster.planeY = planeX * sin(rotate) + this->raycaster.planeY * cos(rotate);
+    this->raycaster.planeX = 0.68 * cos(this->kinematics.angle) - 0 * sin(this->kinematics.angle);
+    this->raycaster.planeY = 0.68 * sin(this->kinematics.angle) + 0 * cos(this->kinematics.angle);
 }
 
 void Player::Draw(sf::RenderWindow &w) {

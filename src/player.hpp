@@ -13,5 +13,6 @@ class Player {
         void Draw(sf::RenderWindow &w);
         Kinematics kinematics;
         Raycaster raycaster;
+    	float x, y;
         sf::RectangleShape rect;
 };

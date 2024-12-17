@@ -8,7 +8,9 @@
 enum TileType
 {
     TILES_EMPTY,
-    TILES_WALL,
+    TILES_BRICKS,
+    TILES_DIRT,
+    TILES_LIGHT,
     TILES_COUNT,
 };
 
