@@ -42,8 +42,8 @@ void Player::Update(float delta) {
     this->rect.setPosition(x, y);
     this->rect.setRotation(rad_to_deg(this->kinematics.angle));
 
-    this->raycaster.planeX = 0.68 * cos(this->kinematics.angle) - 0 * sin(this->kinematics.angle);
-    this->raycaster.planeY = 0.68 * sin(this->kinematics.angle) + 0 * cos(this->kinematics.angle);
+    this->raycaster.planeX = 0.68 * cos(this->kinematics.angle);
+    this->raycaster.planeY = 0.68 * sin(this->kinematics.angle);
 }
 
 void Player::Draw(sf::RenderWindow &w) {
