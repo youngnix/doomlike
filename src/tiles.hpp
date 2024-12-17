@@ -29,7 +29,8 @@ public:
 class Tilemap
 {
 public:
-	std::unordered_map<sf::Vector2i, Tile, HashVector2i> tiles;
+    int width, height;
+	std::vector<TileType> tiles;
 
 	Tilemap();
 	Tilemap(std::vector<int> data);
