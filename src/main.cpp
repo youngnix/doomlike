@@ -28,7 +28,7 @@ int main(void)
     // Get Delta Time
 	sf::Clock clock;
 
-	Tilemap tilemap("../res/map01.txt");
+	Tilemap tilemap("./res/map01.txt");
 
     // Main Loop that have the responsibility to update the Delta Time, update the Player and render this in the window
     while (window.isOpen())

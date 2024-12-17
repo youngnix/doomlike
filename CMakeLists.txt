@@ -10,6 +10,8 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set(SFML_BUILD_AUDIO OFF)
 set(SFML_BUILD_NETWORK OFF)
 
+file(COPY res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 project(doomlike
 	DESCRIPTION "A DOOM-like OpenGL-based renderer practice"
 	VERSION 0.1.0
