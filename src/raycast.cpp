@@ -28,16 +28,17 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2i pos, float angle, Ti
 		double rayDirY = dirY + planeY * cameraX;
 		
 		// Which box of the map we are
-		int mapX = int(pos.x);
-		int mapY = int(pos.y);
+		int mapX = pos.x;
+		int mapY = pos.y;
 
 		// Length of ray from current position to next x or y-side
 		double sideDistX;
 		double sideDistY;
 
 		// Length of ray from one x or y-side to nex x or y-side
-		double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
-		double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
+		double deltaDistX = std::abs(1 / rayDirX);
+		double deltaDistY = std::abs(1 / rayDirY);
+
 		double perpWallDist;
 
 		int stepX, stepY;
@@ -61,51 +62,80 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2i pos, float angle, Ti
 			sideDistY = (mapY + 1.0 - pos.y) * deltaDistY;
 		}
 
+		float maxLength = 200;
+		float length = 0;
 		// Perform DDA
-		while (!hit) {
+		while (!hit && length < maxLength) {
 			// Jump to next map square, either in x-direction, or in y-direction
 			if (sideDistX < sideDistY) {
+				length += deltaDistX;
 				sideDistX += deltaDistX;
 				mapX += stepX;
 				side = 0;
 			} else {
+				length += deltaDistY;
 				sideDistY += deltaDistY;
 				mapY += stepY;
 				side = 1;
 			}
 
+			/*printf("%d\n", mapX);*/
+			/*printf("%d\n", mapY);*/
+
+			sf::Vertex line[2] = {
+				sf::Vertex(sf::Vector2f(pos.x, pos.y)),
+				sf::Vertex(sf::Vector2f(mapX, mapY)),
+			};
+
+			line[0].color = sf::Color::Green;
+			line[1].color = sf::Color::Green;
+
+			window.draw(line, 2, sf::Lines);
+
 			// Check if ray has hit a wall
-			if (tilemap.tiles.count(sf::Vector2i(mapX / 16, mapY / 16)) && tilemap.tiles[{mapX / 16, mapY / 16}].type) {
+			if (tilemap.tiles.find(sf::Vector2i(mapX >> 4, mapY >> 4)) != tilemap.tiles.end()) {
 				hit = 1;
 			}
 		}
 
-		// Calculate distance projected on camera direction
-		if (side == 0) {
-			perpWallDist = (sideDistX - deltaDistX);
-		} else {
-			perpWallDist = (sideDistY - deltaDistY);
+		if (hit) {
+			/*sf::Vector2f intersection = pos + sf::Vector2i(rayDirX * length, rayDirY * length);*/
+
+			// Calculate distance projected on camera direction
+			if (side == 0) {
+				perpWallDist = (sideDistX - deltaDistX);
+			} else {
+				perpWallDist = (sideDistY - deltaDistY);
+			}
+
+			// Calculate height of line to draw on screen
+			int lineHeight {(int)(screenHeight / perpWallDist)};
+
+			// Calculate lowest and highest pixel to fill in current stripe
+			int drawStart {-lineHeight / 2 + screenHeight / 2};
+			if (drawStart < 0) {
+				drawStart = 0;
+			}
+
+			int drawEnd {lineHeight / 2 + screenHeight / 2};
+			if (drawEnd >= screenHeight) {
+				drawEnd = screenHeight - 1;
+			}
+
+			sf::Vertex line[2] = {
+				sf::Vertex(sf::Vector2f(x, drawStart)),
+				sf::Vertex(sf::Vector2f(x, drawEnd)),
+			};
+
+			if (side) {
+				line[0].color = sf::Color(0x00FF00FF);
+				line[1].color = sf::Color(0x00FF00FF);
+			} else {
+				line[0].color = sf::Color(0x008000FF);
+				line[1].color = sf::Color(0x008000FF);
+			}
+
+			window.draw(line, 2, sf::Lines);
 		}
-
-		// Calculate height of line to draw on screen
-		int lineHeight {(int)(screenHeight / perpWallDist)};
-
-		// Calculate lowest and highest pixel to fill in current stripe
-		int drawStart {-lineHeight / 2 + screenHeight / 2};
-		if (drawStart < 0) {
-			drawStart = 0;
-		}
-
-		int drawEnd {lineHeight / 2 + screenHeight / 2};
-		if (drawEnd >= screenHeight) {
-			drawEnd = screenHeight - 1;
-		}
-
-		sf::Vertex line[2] = {
-			sf::Vertex(sf::Vector2f(x, drawStart)),
-			sf::Vertex(sf::Vector2f(x, drawEnd)),
-		};
-
-		window.draw(line, 2, sf::Lines);
 	}
 }
