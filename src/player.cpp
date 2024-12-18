@@ -1,4 +1,6 @@
 #include "player.hpp"
+#include "SDL_keycode.h"
+#include "SDL_mouse.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
 #include "input.hpp"
@@ -37,7 +39,17 @@ void Player::Update(Input::Input &input, float delta) {
         static_cast<float>(input.keyHeld(SDL_SCANCODE_S) - input.keyHeld(SDL_SCANCODE_W)),
     };
 
-    float rotate = deg_to_rad(input.keyHeld(SDL_SCANCODE_LEFT) - input.keyHeld(SDL_SCANCODE_RIGHT)) * 360 * delta;
+    float rotate = deg_to_rad(-input.mouseRel[0]) * 0.5;
+
+    if (input.keyPressed(SDL_SCANCODE_ESCAPE))
+    {
+    	SDL_SetRelativeMouseMode(SDL_FALSE);
+    }
+
+    if (input.buttonPressed(SDL_BUTTON_LEFT))
+    {
+    	SDL_SetRelativeMouseMode(SDL_TRUE);
+    }
 
     this->kinematics.angle -= rotate;
 

@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <cmath>
+#include "SDL_events.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
 #include "SDL_video.h"
@@ -18,6 +19,7 @@ int main(void)
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     SDL_SetWindowResizable(window, SDL_FALSE);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     bool running = true;
 
@@ -43,6 +45,12 @@ int main(void)
         while (SDL_PollEvent(&event))
         {
             switch (event.type) {
+            case SDL_MOUSEBUTTONDOWN: 
+            	input.EventMouseButtonDown(event);
+            	break;
+            case SDL_MOUSEMOTION:
+            	input.EventMouseMotion(event);
+            	break;
             case SDL_KEYDOWN:
             	input.EventKeyDown(event);
             	break;
