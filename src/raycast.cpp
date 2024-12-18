@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include "SDL_render.h"
 #include "tiles.hpp"
 #include "raycast.hpp"
 #include <cmath>
@@ -7,7 +8,7 @@
 #define screenHeight 480
 
 // Put a limit do DDA dont run a infinite distance
-const float MAX_RAY_LENGTH = 300.0f;
+const float MAX_RAY_LENGTH = 100.0f;
 
 // Defining colors for tiles
 const unsigned int tileColors[] = {
@@ -27,7 +28,7 @@ void calculateRayDirection(int x, float dirX, float dirY, float planeX, float pl
     rayDirY = dirY + planeY * cameraX;
 }
 
-bool performDDA(int &mapX, int &mapY, double rayDirX, double rayDirY, double &sideDistX, double &sideDistY, double deltaDistX, double deltaDistY, int &stepX, int &stepY, int &side, Tilemap &tilemap, TileType &hitTile) {
+bool performDDA(SDL_Renderer *renderer, vec2 pos, int &mapX, int &mapY, double rayDirX, double rayDirY, double &sideDistX, double &sideDistY, double deltaDistX, double deltaDistY, int &stepX, int &stepY, int &side, Tilemap &tilemap, TileType &hitTile) {
 	float length = 0;
 	while (!hitTile && length < MAX_RAY_LENGTH) {
         // Determine next position of ray using as a base which edge will be heat first
@@ -42,6 +43,9 @@ bool performDDA(int &mapX, int &mapY, double rayDirX, double rayDirY, double &si
 			mapY += stepY;
 			side = 1;
 		}
+
+		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+		SDL_RenderDrawLineF(renderer, pos[0], pos[1], mapX, mapY);
 
 		if (mapX >= 0 && mapY >= 0 && mapX < tilemap.width && mapY < tilemap.height) {
 			// Check if ray has hit a wall
@@ -82,7 +86,7 @@ void Raycaster::Cast(SDL_Renderer *renderer, vec2 pos, float angle, Tilemap &til
         TileType hitTile = TILES_EMPTY;
 
         // Start DDA
-        bool hit = performDDA(mapX, mapY, rayDirX, rayDirY, sideDistX, sideDistY, deltaDistX, deltaDistY, stepX, stepY, side, tilemap, hitTile);
+        bool hit = performDDA(renderer, pos, mapX, mapY, rayDirX, rayDirY, sideDistX, sideDistY, deltaDistX, deltaDistY, stepX, stepY, side, tilemap, hitTile);
 
         if (hit) {
             // Calculate Wall Distance
@@ -95,7 +99,8 @@ void Raycaster::Cast(SDL_Renderer *renderer, vec2 pos, float angle, Tilemap &til
             int drawEnd = std::min(lineHeight / 2 + screenHeight / 2, screenHeight - 1);
 
 			unsigned int color = tileColors[hitTile];
-			SDL_SetRenderDrawColor(renderer, (color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
+			// side will bitshift colors so that they're halved
+			SDL_SetRenderDrawColor(renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
 
 			SDL_RenderDrawLineF(renderer, x, drawStart, x, drawEnd);
 		}
