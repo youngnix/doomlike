@@ -57,9 +57,6 @@ void Player::Update(Input::Input &input, float delta) {
 
     pos[0] += kinematics.velocity[0];
     pos[1] += kinematics.velocity[1];
-
-    this->raycaster.planeX = 0.68 * cos(this->kinematics.angle);
-    this->raycaster.planeY = 0.68 * sin(this->kinematics.angle);
 }
 
 void Player::Draw() {

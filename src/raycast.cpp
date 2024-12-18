@@ -20,34 +20,34 @@ const unsigned int tileColors[] = {
 Raycaster::Raycaster() : planeX(0), planeY(0.66) {}
 Raycaster::Raycaster(float planeX, float planeY) : planeX(planeX), planeY(planeY) {}
 
-void calculateRayDirection(int x, float dirX, float dirY, float planeX, float planeY, double &rayDirX, double &rayDirY) {
+void Raycaster::CalculateRayDirection(int x, vec2 dir, vec2 rayDir) {
     double cameraX = 2 * x / double(WINDOW_WIDTH) - 1;
-    rayDirX = dirX + planeX * cameraX;
-    rayDirY = dirY + planeY * cameraX;
+    double angle = std::atan2(dir[0], dir[1]);
+
+    rayDir[0] = dir[0] + (planeX * cos(angle) - planeY * sin(angle)) * cameraX;
+    rayDir[1] = dir[1] + (planeX * sin(angle) + planeY * cos(angle)) * cameraX;
 }
 
-bool performDDA(vec2 pos, int &mapX, int &mapY, double rayDirX, double rayDirY, double &sideDistX, double &sideDistY, double deltaDistX, double deltaDistY, int &stepX, int &stepY, int &side, Tilemap &tilemap, TileType &hitTile) {
-	float length = 0;
-	while (!hitTile && length < MAX_RAY_LENGTH) {
+bool Raycaster::PerformDDA(vec2 pos, vec2 mapPos, vec2 sideDist, vec2 deltaDist, vec2i step, bool &side, Tilemap &tilemap, TileType &hitTile) {
+	while (!hitTile && sideDist[0] + sideDist[1] < MAX_RAY_LENGTH) {
         // Determine next position of ray using as a base which edge will be heat first
-		if (sideDistX < sideDistY) {
-			length += deltaDistX;
-			sideDistX += deltaDistX;
-			mapX += stepX;
-			side = 0;
+		if (sideDist[0] < sideDist[1]) {
+			sideDist[0] += deltaDist[0];
+			mapPos[0] += step[0];
+			side = false;
 		} else {
-			length += deltaDistY;
-			sideDistY += deltaDistY;
-			mapY += stepY;
-			side = 1;
+			sideDist[1] += deltaDist[1];
+			mapPos[1] += step[1];
+			side = true;
 		}
 
 		SDL_SetRenderDrawColor(graphics.renderer, 0x00, 0xFF, 0x00, 0xFF);
-		SDL_RenderDrawLineF(graphics.renderer, pos[0], pos[1], mapX, mapY);
+		SDL_RenderDrawLineF(graphics.renderer, pos[0], pos[1], mapPos[0], mapPos[1]);
 
-		if (mapX >= 0 && mapY >= 0 && mapX < tilemap.width && mapY < tilemap.height) {
+		if (mapPos[0] >= 0 && mapPos[0] < tilemap.width
+		&& mapPos[1] >= 0 && mapPos[1] < tilemap.height) {
 			// Check if ray has hit a wall
-			hitTile = tilemap.tiles[mapY * tilemap.width + mapX];
+			hitTile = tilemap.tiles[mapPos[1] * tilemap.width + mapPos[0]];
 
 			if (hitTile != TILES_EMPTY) {
 				return true;
@@ -59,49 +59,60 @@ bool performDDA(vec2 pos, int &mapX, int &mapY, double rayDirX, double rayDirY, 
 }
 
 void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
-	float dirX = std::sin(angle);
-	float dirY = -std::cos(angle);
+	vec2 dir = {
+		std::sin(angle),
+		-std::cos(angle),
+	};
 
     for (int x = 0; x < WINDOW_WIDTH; x++) {
+        vec2 rayDir, mapPos, deltaDist, sideDist;
+        vec2i step;
+        bool side;
+
         // Calculate ray position and direction
-        double rayDirX, rayDirY;
-        calculateRayDirection(x, dirX, dirY, planeX, planeY, rayDirX, rayDirY);
+        CalculateRayDirection(x, dir, rayDir);
 
-		// Which box of the map we are
-		int mapX = pos[0];
-		int mapY = pos[1];
+		mapPos[0] = pos[0];
+		mapPos[1] = pos[1];
 
-        double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
-        double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
+        deltaDist[0] = std::abs(1 / rayDir[0]);
+        deltaDist[1] = std::abs(1 / rayDir[1]);
 
-        double sideDistX = (rayDirX < 0) ? (pos[0] - mapX) * deltaDistX : (mapX + 1.0 - pos[0]) * deltaDistX;
-        double sideDistY = (rayDirY < 0) ? (pos[1] - mapY) * deltaDistY : (mapY + 1.0 - pos[1]) * deltaDistY;
+        sideDist[0] = (rayDir[0] < 0) ? (pos[0] - mapPos[0]) * deltaDist[0] : (mapPos[0] + 1.0 - pos[0]) * deltaDist[0];
+        sideDist[1] = (rayDir[1] < 0) ? (pos[1] - mapPos[1]) * deltaDist[1] : (mapPos[1] + 1.0 - pos[1]) * deltaDist[1];
 
-        int stepX = (rayDirX < 0) ? -1 : 1;
-        int stepY = (rayDirY < 0) ? -1 : 1;
+        step[0] = (rayDir[0] < 0) ? -1 : 1;
+        step[1] = (rayDir[1] < 0) ? -1 : 1;
 
-        int side;
         TileType hitTile = TILES_EMPTY;
 
         // Start DDA
-        bool hit = performDDA(pos, mapX, mapY, rayDirX, rayDirY, sideDistX, sideDistY, deltaDistX, deltaDistY, stepX, stepY, side, tilemap, hitTile);
+        bool hit = PerformDDA(pos, mapPos, sideDist, deltaDist, step, side, tilemap, hitTile);
 
         if (hit) {
+			// start and finish y coordinates
+            vec2 line;
+            double perpWallDist;
+            float lineHeight;
+            unsigned int color;
+            
             // Calculate Wall Distance
-            double perpWallDist = (side == 0) ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
+            // false side = index zero
+            // true side = index one
+            perpWallDist = sideDist[side] - deltaDist[side];
 
             // Determine the Height of the Line that will be drawn
-            int lineHeight = std::min(int(WINDOW_WIDTH / perpWallDist), WINDOW_WIDTH);
+            lineHeight = std::min(WINDOW_WIDTH / perpWallDist, WINDOW_WIDTH);
 
-            int drawStart = std::max(-lineHeight / 2 + WINDOW_WIDTH / 2, 0);
-            int drawEnd = std::min(lineHeight / 2 + WINDOW_WIDTH / 2, WINDOW_WIDTH - 1);
+            line[0] = std::max(-lineHeight / 2 + WINDOW_WIDTH / 2, 0.0);
+            line[1] = std::min(lineHeight / 2 + WINDOW_WIDTH / 2, WINDOW_WIDTH - 1);
 
-			unsigned int color = tileColors[hitTile];
+			color = tileColors[hitTile];
 
 			// side will bitshift colors so that they're halved
 			SDL_SetRenderDrawColor(graphics.renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
 
-			SDL_RenderDrawLineF(graphics.renderer, x, drawStart, x, drawEnd);
+			SDL_RenderDrawLineF(graphics.renderer, x, line[0], x, line[1]);
 		}
 	}
 }

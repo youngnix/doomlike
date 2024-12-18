@@ -2,8 +2,8 @@
 
 #include <SDL.h>
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define WINDOW_WIDTH 640.0
+#define WINDOW_HEIGHT 480.0
 
 struct Graphics {
 	SDL_Renderer *renderer;
