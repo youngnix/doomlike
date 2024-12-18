@@ -1,12 +1,12 @@
 #pragma once
 
-#include "SFML/System/Vector2.hpp"
+#include "util.hpp"
 
 // The kinematics component should be used with entities that move.
 class Kinematics {
   public:
     float speed;
-    sf::Vector2<float> velocity;
+    vec2 velocity;
 
     float accel;
     float decel;
@@ -14,5 +14,5 @@ class Kinematics {
 
     Kinematics(float speed, float accel, float decel);
     // Apply will store velocity based on factors like acceleration, deceleration, friction, speed and angle.
-    sf::Vector2f Apply(float delta, sf::Vector2<float> input);
+    void Apply(float delta, vec2 direction);
 };

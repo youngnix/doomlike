@@ -1,5 +1,4 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Graphics/PrimitiveType.hpp>
+#include <SDL.h>
 #include "tiles.hpp"
 #include "raycast.hpp"
 #include <cmath>
@@ -11,11 +10,11 @@
 const float MAX_RAY_LENGTH = 300.0f;
 
 // Defining colors for tiles
-const sf::Color tileColors[] = {
-    sf::Color::Transparent,       // TILES_EMPTY
-    sf::Color(199, 56, 30, 255),  // TILES_BRICKS
-    sf::Color(192, 112, 50, 255), // TILES_DIRT
-    sf::Color(255, 240, 74, 255), // TILES_LIGHT
+const unsigned int tileColors[] = {
+    0x00000000, // TILES_EMPTY
+    0xFF8F4DFF, // TILES_BRICKS
+    0xFF8F4DFF, // TILES_DIRT
+    0xFFFFBDFF, // TILES_LIGHT
 };
 
 // Constructors using Initialization List
@@ -29,46 +28,52 @@ void calculateRayDirection(int x, float dirX, float dirY, float planeX, float pl
 }
 
 bool performDDA(int &mapX, int &mapY, double rayDirX, double rayDirY, double &sideDistX, double &sideDistY, double deltaDistX, double deltaDistY, int &stepX, int &stepY, int &side, Tilemap &tilemap, TileType &hitTile) {
-    while (mapX >= 0 && mapY >= 0 && mapX < tilemap.width && mapY < tilemap.height) {
+	float length = 0;
+	while (!hitTile && length < MAX_RAY_LENGTH) {
         // Determine next position of ray using as a base which edge will be heat first
 		if (sideDistX < sideDistY) {
-            sideDistX += deltaDistX;
-            mapX += stepX;
-            side = 0;
-        } else {
-            sideDistY += deltaDistY;
-            mapY += stepY;
-            side = 1;
-        }
+			length += deltaDistX;
+			sideDistX += deltaDistX;
+			mapX += stepX;
+			side = 0;
+		} else {
+			length += deltaDistY;
+			sideDistY += deltaDistY;
+			mapY += stepY;
+			side = 1;
+		}
 
-        // Check collision with the tile
-        hitTile = tilemap.tiles[mapY * tilemap.width + mapX];
-        if (hitTile != TILES_EMPTY) {
-            return true;
-        }
+		if (mapX >= 0 && mapY >= 0 && mapX < tilemap.width && mapY < tilemap.height) {
+			// Check if ray has hit a wall
+			hitTile = tilemap.tiles[mapY * tilemap.width + mapX];
+
+			if (hitTile != TILES_EMPTY) {
+				return true;
+			}
+		}
     }
+
     return false;
 }
 
-void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Tilemap &tilemap) {
-    float dirX = std::sin(angle);
-    float dirY = -std::cos(angle);
-
-    sf::VertexArray wallLines(sf::Lines);
+void Raycaster::Cast(SDL_Renderer *renderer, vec2 pos, float angle, Tilemap &tilemap) {
+	float dirX = std::sin(angle);
+	float dirY = -std::cos(angle);
 
     for (int x = 0; x < screenWidth; x++) {
         // Calculate ray position and direction
         double rayDirX, rayDirY;
         calculateRayDirection(x, dirX, dirY, planeX, planeY, rayDirX, rayDirY);
 
-        int mapX = int(pos.x);
-        int mapY = int(pos.y);
+		// Which box of the map we are
+		int mapX = pos[0];
+		int mapY = pos[1];
 
         double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
         double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
 
-        double sideDistX = (rayDirX < 0) ? (pos.x - mapX) * deltaDistX : (mapX + 1.0 - pos.x) * deltaDistX;
-        double sideDistY = (rayDirY < 0) ? (pos.y - mapY) * deltaDistY : (mapY + 1.0 - pos.y) * deltaDistY;
+        double sideDistX = (rayDirX < 0) ? (pos[0] - mapX) * deltaDistX : (mapX + 1.0 - pos[0]) * deltaDistX;
+        double sideDistY = (rayDirY < 0) ? (pos[1] - mapY) * deltaDistY : (mapY + 1.0 - pos[1]) * deltaDistY;
 
         int stepX = (rayDirX < 0) ? -1 : 1;
         int stepY = (rayDirY < 0) ? -1 : 1;
@@ -89,19 +94,10 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Ti
             int drawStart = std::max(-lineHeight / 2 + screenHeight / 2, 0);
             int drawEnd = std::min(lineHeight / 2 + screenHeight / 2, screenHeight - 1);
 
-            // Color and Shadow
-            sf::Color color = tileColors[hitTile];
-            if (side == 1) { // Escurecer para dar efeito 3D
-                color.r /= 1.5;
-                color.g /= 1.5;
-                color.b /= 1.5;
-            }
+			unsigned int color = tileColors[hitTile];
+			SDL_SetRenderDrawColor(renderer, (color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 
-            // Add lines to VertexArray
-            wallLines.append(sf::Vertex(sf::Vector2f(x, drawStart), color));
-            wallLines.append(sf::Vertex(sf::Vector2f(x, drawEnd), color));
-        }
-    }
-
-    window.draw(wallLines);
+			SDL_RenderDrawLineF(renderer, x, drawStart, x, drawEnd);
+		}
+	}
 }

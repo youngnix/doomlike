@@ -1,6 +1,5 @@
 #pragma once
 
-#include "SFML/System/Vector2.hpp"
 #include "tiles.hpp"
 
 struct Raycaster {
@@ -8,5 +7,5 @@ struct Raycaster {
 
 	Raycaster();
 	Raycaster(float planeX, float planeY);
-	void Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Tilemap &tilemap);
+	void Cast(SDL_Renderer *window, vec2 pos, float angle, Tilemap &tilemap);
 };

@@ -1,7 +1,5 @@
 #include "tiles.hpp"
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Vector2.hpp>
+#include "SDL_render.h"
 #include <cstdlib>
 #include <fstream>
 #include <cmath>
@@ -24,7 +22,7 @@ Tilemap::Tilemap(std::string path) {
 
 	int start = 0;
 	int len = 0;
-	sf::Vector2i pos;
+	vec2 pos;
 
 	int lineLength = 0;
 
@@ -65,11 +63,11 @@ Tilemap::Tilemap(std::string path) {
 
 			this->SetTile(pos, type);
 
-			pos.x++;
+			pos[0]++;
 
 			if (c == '\n') {
-				pos.x = 0;
-				pos.y += 1;
+				pos[0] = 0;
+				pos[1] += 1;
 			}
 
 			start = i+1;
@@ -77,27 +75,31 @@ Tilemap::Tilemap(std::string path) {
 	}
 }
 
-void Tilemap::SetTile(sf::Vector2i pos, TileType type) {
+void Tilemap::SetTile(vec2 pos, TileType type) {
 	if (type <= TILES_EMPTY || type >= TILES_COUNT) {
 		return;
 	}
 
-	this->tiles[pos.y * width + pos.x] = type;
+	this->tiles[pos[1] * width + pos[0]] = type;
 }
 
-void Tilemap::Draw(sf::RenderWindow &w) {
+void Tilemap::Draw(SDL_Renderer *renderer) {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			if (tiles[i * width + j] == TILES_EMPTY) {
 				continue;
 			}
 
-			sf::RectangleShape shape;
+			SDL_Rect rect = {
+				j,
+				i,
+				1,
+				1,
+			};
 
-			shape.setSize(sf::Vector2f(1, 1));
-			shape.setPosition(j * shape.getSize().x, i * shape.getSize().y);
+			SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-			w.draw(shape);
+			SDL_RenderFillRect(renderer, &rect);
 		}
 	}
 }

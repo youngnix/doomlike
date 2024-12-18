@@ -1,18 +1,18 @@
 #pragma once
 
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
+#include "input.hpp"
 #include "kinematics.hpp"
 #include "raycast.hpp"
 
 class Player {
     public:
         Player();
+        Player(SDL_Renderer *renderer);
         void Update(float delta);
-        void Draw(sf::RenderWindow &w);
+        void Draw(SDL_Renderer *r);
         Kinematics kinematics;
         Raycaster raycaster;
-    	float x, y;
-        sf::RectangleShape rect;
+    	vec2 pos;
+		void Update(Input::Input &input, float delta);
+		SDL_Texture *texture_2d;
 };
