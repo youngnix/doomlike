@@ -1,9 +1,9 @@
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/OpenGL.hpp>
-#include <SFML/Window/ContextSettings.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/VideoMode.hpp>
-#include <SFML/Window/WindowStyle.hpp>
+#include <SDL.h>
+#include <cmath>
+#include "SDL_render.h"
+#include "SDL_timer.h"
+#include "SDL_video.h"
+#include "input.hpp"
 #include "player.hpp"
 #include "tiles.hpp"
 
@@ -12,36 +12,45 @@
 
 int main(void)
 {
-    // Configures the OpenGL context used by SFML
-    sf::ContextSettings settings;
+	SDL_Init(SDL_INIT_VIDEO);
 
-    // Define the OpenGL 3.3
-    settings.majorVersion = 3;
-    settings.minorVersion = 3;
+    SDL_Window *window = SDL_CreateWindow("DOOMLIKE", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    // sf::RenderWindow window() create a window called doonlike, set a size for this window, use the default style for this an apply the opengl settings
-    sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "doomlike", sf::Style::Default, settings);
+    SDL_SetWindowResizable(window, SDL_FALSE);
+
+    bool running = true;
 
     // Initialize the player
-    Player player;
-
-    // Get Delta Time
-	sf::Clock clock;
+    Player player(renderer);
+	Input::Input input;
 
 	Tilemap tilemap("./res/map01.txt");
 
+    double startTime = (double)SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency() / 1000.0;
+    double endTime = startTime;
+    double deltaTime = INFINITY;
     // Main Loop that have the responsibility to update the Delta Time, update the Player and render this in the window
-    while (window.isOpen())
+    while (running)
     {
-    	float delta = clock.restart().asSeconds();
-        sf::Event event;
+    	deltaTime = (endTime - startTime) / SDL_GetPerformanceFrequency();
+    	startTime = SDL_GetPerformanceCounter();
 
+    	SDL_Event event;
+    	input.Update();
+        
         // Window Events that for now we have just the close event
-        while (window.pollEvent(event))
+        while (SDL_PollEvent(&event))
         {
             switch (event.type) {
-            case sf::Event::Closed: {
-                window.close();
+            case SDL_KEYDOWN:
+            	input.EventKeyDown(event);
+            	break;
+            case SDL_KEYUP:
+            	input.EventKeyUp(event);
+            	break;
+            case SDL_QUIT: {
+                running = false;
                 break;
             }
             default:
@@ -49,16 +58,20 @@ int main(void)
             }
         }
 
-        window.clear();
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+        SDL_RenderClear(renderer);
 
-        player.Update(delta);
+        player.Update(input, deltaTime);
+        printf("%f\n", deltaTime);
 
-    	player.raycaster.Cast(window, sf::Vector2f(player.x, player.y), player.kinematics.angle, tilemap);
+    	player.raycaster.Cast(renderer, player.pos, player.kinematics.angle, tilemap);
 
-        player.Draw(window);
-        tilemap.Draw(window);
+        player.Draw(renderer);
+        tilemap.Draw(renderer);
 
-        window.display();
+        SDL_RenderPresent(renderer);
+
+    	endTime = SDL_GetPerformanceCounter();
     }
 
     return 0;

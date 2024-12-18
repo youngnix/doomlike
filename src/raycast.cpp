@@ -1,4 +1,4 @@
-#include "SFML/Graphics/PrimitiveType.hpp"
+#include <SDL.h>
 #include "tiles.hpp"
 #include "raycast.hpp"
 #include <cmath>
@@ -16,7 +16,7 @@ Raycaster::Raycaster(float planeX, float planeY) {
 	this->planeY = planeY;
 }
 
-void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Tilemap &tilemap) {
+void Raycaster::Cast(SDL_Renderer *renderer, vec2 pos, float angle, Tilemap &tilemap) {
 	float dirX = std::sin(angle);
 	float dirY = -std::cos(angle);
 
@@ -28,8 +28,8 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Ti
 		double rayDirY = dirY + planeY * cameraX;
 		
 		// Which box of the map we are
-		int mapX = pos.x;
-		int mapY = pos.y;
+		int mapX = pos[0];
+		int mapY = pos[1];
 
 		// Length of ray from current position to next x or y-side
 		double sideDistX;
@@ -48,32 +48,26 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Ti
 		// Calculate step and initial sideDist
 		if (rayDirX < 0) {
 			stepX = -1;
-			sideDistX = (pos.x - mapX) * deltaDistX;
+			sideDistX = (pos[0] - mapX) * deltaDistX;
 		} else {
 			stepX = 1;
-			sideDistX = (mapX + 1.0 - pos.x) * deltaDistX;
+			sideDistX = (mapX + 1.0 - pos[0]) * deltaDistX;
 		}
 
 		if (rayDirY < 0) {
 			stepY = -1;
-			sideDistY = (pos.y - mapY) * deltaDistY;
+			sideDistY = (pos[1] - mapY) * deltaDistY;
 		} else {
 			stepY = 1;
-			sideDistY = (mapY + 1.0 - pos.y) * deltaDistY;
+			sideDistY = (mapY + 1.0 - pos[1]) * deltaDistY;
 		}
 
 		float maxLength = 300;
 		float length = 0;
 		TileType hitTile = TILES_EMPTY;
-		//
+
 		// Perform DDA
-		while (!hit
-			&& length < maxLength
-			&& mapX > 0
-			&& mapY > 0
-			&& mapX < tilemap.width
-			&& mapY < tilemap.height) {
-			//
+		while (!hit && length < maxLength) {
 			// Jump to next map square, either in x-direction, or in y-direction
 			if (sideDistX < sideDistY) {
 				length += deltaDistX;
@@ -87,11 +81,15 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Ti
 				side = 1;
 			}
 
-			// Check if ray has hit a wall
-			hitTile = tilemap.tiles[mapY * tilemap.width + mapX];
+			if (mapX >= 0 && mapY >= 0
+			&& mapX < tilemap.width && mapY < tilemap.height)
+			{
+				// Check if ray has hit a wall
+				hitTile = tilemap.tiles[mapY * tilemap.width + mapX];
 
-			if (hitTile != TILES_EMPTY) {
-				hit = 1;
+				if (hitTile != TILES_EMPTY) {
+					hit = 1;
+				}
 			}
 		}
 
@@ -132,15 +130,9 @@ void Raycaster::Cast(sf::RenderWindow &window, sf::Vector2f pos, float angle, Ti
 					continue;
 			}
 
-			sf::Vertex line[2] = {
-				sf::Vertex(sf::Vector2f(x, drawStart)),
-				sf::Vertex(sf::Vector2f(x, drawEnd)),
-			};
+			SDL_SetRenderDrawColor(renderer, (color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 
-			line[0].color = sf::Color(color);
-			line[1].color = sf::Color(color);
-
-			window.draw(line, 2, sf::Lines);
+			SDL_RenderDrawLineF(renderer, x, drawStart, x, drawEnd);
 		}
 	}
 }

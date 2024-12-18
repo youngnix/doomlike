@@ -1,7 +1,7 @@
 #include "player.hpp"
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Keyboard.hpp>
+#include "SDL_render.h"
+#include "SDL_surface.h"
+#include "input.hpp"
 #include "kinematics.hpp"
 #include <cmath>
 
@@ -16,36 +16,43 @@ static float deg_to_rad(float deg) {
 }
 
 // Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
-Player::Player() : kinematics(10, 1.2, 0.6) {
-	this->x = 0;
-	this->y = 0;
-	this->rect.setSize(sf::Vector2f(5, 5));
-	this->rect.setOrigin(this->rect.getSize().x / 2, this->rect.getSize().y / 2);
+Player::Player(SDL_Renderer *renderer) : kinematics(10, 1.2, 0.6) {
+	this->pos[0] = 1;
+	this->pos[1] = 1;
 	kinematics.angle = deg_to_rad(90);
+
+	SDL_Surface *surf = SDL_CreateRGBSurface(0, 16, 16, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+
+	SDL_FillRect(surf, NULL, 0xFFFFFFFF);
+
+	texture_2d = SDL_CreateTextureFromSurface(renderer, surf);
+
+	SDL_FreeSurface(surf);
 }
 
-void Player::Update(float delta) {
+void Player::Update(Input::Input &input, float delta) {
     // Determine direction based on input axis
-    sf::Vector2<float> input = {
-        static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::A)),
-        static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::W)),
+    vec2 direction = {
+        static_cast<float>(input.keyHeld(SDL_SCANCODE_D) - input.keyHeld(SDL_SCANCODE_A)),
+        static_cast<float>(input.keyHeld(SDL_SCANCODE_S) - input.keyHeld(SDL_SCANCODE_W)),
     };
 
-    float rotate = deg_to_rad(sf::Keyboard::isKeyPressed(sf::Keyboard::Left) - sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) * 360 * delta;
+    float rotate = deg_to_rad(input.keyHeld(SDL_SCANCODE_LEFT) - input.keyHeld(SDL_SCANCODE_RIGHT)) * 360 * delta;
 
     this->kinematics.angle -= rotate;
 
-    auto pos = this->kinematics.Apply(delta, input);
+    this->kinematics.Apply(delta, direction);
 
-    x += pos.x;
-    y += pos.y;
-    this->rect.setPosition(x, y);
-    this->rect.setRotation(rad_to_deg(this->kinematics.angle));
+    pos[0] += kinematics.velocity[0];
+    pos[1] += kinematics.velocity[1];
 
     this->raycaster.planeX = 0.68 * cos(this->kinematics.angle);
     this->raycaster.planeY = 0.68 * sin(this->kinematics.angle);
 }
 
-void Player::Draw(sf::RenderWindow &w) {
-    w.draw(this->rect);
+void Player::Draw(SDL_Renderer *renderer) {
+    SDL_FRect rect = {pos[0], pos[1], 1, 1};
+    SDL_FPoint center = {rect.w / 2, rect.h/2};
+
+    SDL_RenderCopyExF(renderer, texture_2d, NULL, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
 }

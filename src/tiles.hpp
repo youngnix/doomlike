@@ -1,9 +1,9 @@
 #pragma once
 
-#include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/System/Vector2.hpp"
+#include "SDL_render.h"
+#include "util.hpp"
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 enum TileType
 {
@@ -12,12 +12,6 @@ enum TileType
     TILES_DIRT,
     TILES_LIGHT,
     TILES_COUNT,
-};
-
-struct HashVector2i {
-    std::size_t operator()(const sf::Vector2i& v) const {
-        return std::hash<int>()(v.x) ^ (std::hash<int>()(v.y) << 1);
-    }
 };
 
 class Tile
@@ -38,7 +32,7 @@ public:
 	Tilemap(std::vector<int> data);
 	Tilemap(std::string path);
 
-	void Draw(sf::RenderWindow &w);
+	void Draw(SDL_Renderer *renderer);
 	void LoadFromFile(std::string path);
-	void SetTile(sf::Vector2i pos, TileType type);
+	void SetTile(vec2 pos, TileType type);
 };
