@@ -7,9 +7,8 @@
 class Player {
     public:
         Player();
-        Player(SDL_Renderer *renderer);
         void Update(float delta);
-        void Draw(SDL_Renderer *r);
+        void Draw();
         Kinematics kinematics;
         Raycaster raycaster;
     	vec2 pos;

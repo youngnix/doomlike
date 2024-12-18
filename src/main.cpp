@@ -3,28 +3,17 @@
 #include "SDL_events.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
-#include "SDL_video.h"
+#include "graphics.hpp"
 #include "input.hpp"
 #include "player.hpp"
 #include "tiles.hpp"
 
-#define screenWidth 640
-#define screenHeight 480
-
 int main(void)
 {
-	SDL_Init(SDL_INIT_VIDEO);
-
-    SDL_Window *window = SDL_CreateWindow("DOOMLIKE", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    SDL_SetWindowResizable(window, SDL_FALSE);
-    SDL_SetRelativeMouseMode(SDL_TRUE);
-
     bool running = true;
 
     // Initialize the player
-    Player player(renderer);
+    Player player;
 	Input::Input input;
 
 	Tilemap tilemap("./res/map01.txt");
@@ -66,18 +55,16 @@ int main(void)
             }
         }
 
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-        SDL_RenderClear(renderer);
-
         player.Update(input, deltaTime);
-        printf("%f\n", deltaTime);
 
-    	player.raycaster.Cast(renderer, player.pos, player.kinematics.angle, tilemap);
+		graphics.Begin();
 
-        player.Draw(renderer);
-        tilemap.Draw(renderer);
+        player.Draw();
+        tilemap.Draw();
 
-        SDL_RenderPresent(renderer);
+    	player.raycaster.Draw(player.pos, player.kinematics.angle, tilemap);
+
+		graphics.End();
 
     	endTime = SDL_GetPerformanceCounter();
     }

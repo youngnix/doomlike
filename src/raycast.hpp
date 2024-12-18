@@ -7,5 +7,5 @@ struct Raycaster {
 
 	Raycaster();
 	Raycaster(float planeX, float planeY);
-	void Cast(SDL_Renderer *window, vec2 pos, float angle, Tilemap &tilemap);
+	void Draw(vec2 pos, float angle, Tilemap &tilemap);
 };

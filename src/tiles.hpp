@@ -32,7 +32,7 @@ public:
 	Tilemap(std::vector<int> data);
 	Tilemap(std::string path);
 
-	void Draw(SDL_Renderer *renderer);
+	void Draw();
 	void LoadFromFile(std::string path);
 	void SetTile(vec2 pos, TileType type);
 };

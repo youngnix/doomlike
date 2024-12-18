@@ -1,5 +1,6 @@
 #include "tiles.hpp"
 #include "SDL_render.h"
+#include "graphics.hpp"
 #include <cstdlib>
 #include <fstream>
 #include <cmath>
@@ -83,7 +84,7 @@ void Tilemap::SetTile(vec2 pos, TileType type) {
 	this->tiles[pos[1] * width + pos[0]] = type;
 }
 
-void Tilemap::Draw(SDL_Renderer *renderer) {
+void Tilemap::Draw() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			if (tiles[i * width + j] == TILES_EMPTY) {
@@ -97,9 +98,9 @@ void Tilemap::Draw(SDL_Renderer *renderer) {
 				1,
 			};
 
-			SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			SDL_SetRenderDrawColor(graphics.renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-			SDL_RenderFillRect(renderer, &rect);
+			SDL_RenderFillRect(graphics.renderer, &rect);
 		}
 	}
 }

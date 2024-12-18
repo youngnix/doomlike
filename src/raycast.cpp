@@ -2,10 +2,8 @@
 #include "SDL_render.h"
 #include "tiles.hpp"
 #include "raycast.hpp"
+#include "graphics.hpp"
 #include <cmath>
-
-#define screenWidth 640
-#define screenHeight 480
 
 // Put a limit do DDA dont run a infinite distance
 const float MAX_RAY_LENGTH = 100.0f;
@@ -23,12 +21,12 @@ Raycaster::Raycaster() : planeX(0), planeY(0.66) {}
 Raycaster::Raycaster(float planeX, float planeY) : planeX(planeX), planeY(planeY) {}
 
 void calculateRayDirection(int x, float dirX, float dirY, float planeX, float planeY, double &rayDirX, double &rayDirY) {
-    double cameraX = 2 * x / double(screenWidth) - 1;
+    double cameraX = 2 * x / double(WINDOW_WIDTH) - 1;
     rayDirX = dirX + planeX * cameraX;
     rayDirY = dirY + planeY * cameraX;
 }
 
-bool performDDA(SDL_Renderer *renderer, vec2 pos, int &mapX, int &mapY, double rayDirX, double rayDirY, double &sideDistX, double &sideDistY, double deltaDistX, double deltaDistY, int &stepX, int &stepY, int &side, Tilemap &tilemap, TileType &hitTile) {
+bool performDDA(vec2 pos, int &mapX, int &mapY, double rayDirX, double rayDirY, double &sideDistX, double &sideDistY, double deltaDistX, double deltaDistY, int &stepX, int &stepY, int &side, Tilemap &tilemap, TileType &hitTile) {
 	float length = 0;
 	while (!hitTile && length < MAX_RAY_LENGTH) {
         // Determine next position of ray using as a base which edge will be heat first
@@ -44,8 +42,8 @@ bool performDDA(SDL_Renderer *renderer, vec2 pos, int &mapX, int &mapY, double r
 			side = 1;
 		}
 
-		SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
-		SDL_RenderDrawLineF(renderer, pos[0], pos[1], mapX, mapY);
+		SDL_SetRenderDrawColor(graphics.renderer, 0x00, 0xFF, 0x00, 0xFF);
+		SDL_RenderDrawLineF(graphics.renderer, pos[0], pos[1], mapX, mapY);
 
 		if (mapX >= 0 && mapY >= 0 && mapX < tilemap.width && mapY < tilemap.height) {
 			// Check if ray has hit a wall
@@ -60,11 +58,11 @@ bool performDDA(SDL_Renderer *renderer, vec2 pos, int &mapX, int &mapY, double r
     return false;
 }
 
-void Raycaster::Cast(SDL_Renderer *renderer, vec2 pos, float angle, Tilemap &tilemap) {
+void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
 	float dirX = std::sin(angle);
 	float dirY = -std::cos(angle);
 
-    for (int x = 0; x < screenWidth; x++) {
+    for (int x = 0; x < WINDOW_WIDTH; x++) {
         // Calculate ray position and direction
         double rayDirX, rayDirY;
         calculateRayDirection(x, dirX, dirY, planeX, planeY, rayDirX, rayDirY);
@@ -86,23 +84,24 @@ void Raycaster::Cast(SDL_Renderer *renderer, vec2 pos, float angle, Tilemap &til
         TileType hitTile = TILES_EMPTY;
 
         // Start DDA
-        bool hit = performDDA(renderer, pos, mapX, mapY, rayDirX, rayDirY, sideDistX, sideDistY, deltaDistX, deltaDistY, stepX, stepY, side, tilemap, hitTile);
+        bool hit = performDDA(pos, mapX, mapY, rayDirX, rayDirY, sideDistX, sideDistY, deltaDistX, deltaDistY, stepX, stepY, side, tilemap, hitTile);
 
         if (hit) {
             // Calculate Wall Distance
             double perpWallDist = (side == 0) ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
 
             // Determine the Height of the Line that will be drawn
-            int lineHeight = std::min(int(screenHeight / perpWallDist), screenHeight);
+            int lineHeight = std::min(int(WINDOW_WIDTH / perpWallDist), WINDOW_WIDTH);
 
-            int drawStart = std::max(-lineHeight / 2 + screenHeight / 2, 0);
-            int drawEnd = std::min(lineHeight / 2 + screenHeight / 2, screenHeight - 1);
+            int drawStart = std::max(-lineHeight / 2 + WINDOW_WIDTH / 2, 0);
+            int drawEnd = std::min(lineHeight / 2 + WINDOW_WIDTH / 2, WINDOW_WIDTH - 1);
 
 			unsigned int color = tileColors[hitTile];
-			// side will bitshift colors so that they're halved
-			SDL_SetRenderDrawColor(renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
 
-			SDL_RenderDrawLineF(renderer, x, drawStart, x, drawEnd);
+			// side will bitshift colors so that they're halved
+			SDL_SetRenderDrawColor(graphics.renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
+
+			SDL_RenderDrawLineF(graphics.renderer, x, drawStart, x, drawEnd);
 		}
 	}
 }

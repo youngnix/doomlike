@@ -1,8 +1,8 @@
 #include "player.hpp"
-#include "SDL_keycode.h"
 #include "SDL_mouse.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
+#include "graphics.hpp"
 #include "input.hpp"
 #include "kinematics.hpp"
 #include <cmath>
@@ -18,7 +18,7 @@ static float deg_to_rad(float deg) {
 }
 
 // Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
-Player::Player(SDL_Renderer *renderer) : kinematics(10, 1.2, 0.6) {
+Player::Player() : kinematics(10, 1.2, 0.6) {
 	this->pos[0] = 1;
 	this->pos[1] = 1;
 	kinematics.angle = deg_to_rad(90);
@@ -27,7 +27,7 @@ Player::Player(SDL_Renderer *renderer) : kinematics(10, 1.2, 0.6) {
 
 	SDL_FillRect(surf, NULL, 0xFFFFFFFF);
 
-	texture_2d = SDL_CreateTextureFromSurface(renderer, surf);
+	texture_2d = SDL_CreateTextureFromSurface(graphics.renderer, surf);
 
 	SDL_FreeSurface(surf);
 }
@@ -62,9 +62,9 @@ void Player::Update(Input::Input &input, float delta) {
     this->raycaster.planeY = 0.68 * sin(this->kinematics.angle);
 }
 
-void Player::Draw(SDL_Renderer *renderer) {
+void Player::Draw() {
     SDL_FRect rect = {pos[0], pos[1], 1, 1};
     SDL_FPoint center = {rect.w / 2, rect.h/2};
 
-    SDL_RenderCopyExF(renderer, texture_2d, NULL, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
+    SDL_RenderCopyExF(graphics.renderer, texture_2d, NULL, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
 }
