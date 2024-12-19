@@ -17,32 +17,28 @@ const unsigned int tileColors[] = {
 };
 
 // Constructors using Initialization List
-Raycaster::Raycaster() : planeX(0), planeY(0.66) {}
-Raycaster::Raycaster(float planeX, float planeY) : planeX(planeX), planeY(planeY) {}
+Raycaster::Raycaster() : plane{0, 0.66} {}
+Raycaster::Raycaster(float planeX, float planeY) : plane{planeX, planeY} {}
 
 void Raycaster::CalculateRayDirection(int x, vec2 dir, vec2 rayDir) {
     double cameraX = 2 * x / double(WINDOW_WIDTH) - 1;
-    double angle = std::atan2(dir[0], dir[1]);
+    double angle = std::atan2(dir[1], dir[0]);
 
-    rayDir[0] = dir[0] + (planeX * cos(angle) - planeY * sin(angle)) * cameraX;
-    rayDir[1] = dir[1] + (planeX * sin(angle) + planeY * cos(angle)) * cameraX;
+    rayDir[0] = dir[0] + (plane[0] * cos(angle) - plane[1] * sin(angle)) * cameraX;
+    rayDir[1] = dir[1] + (plane[0] * sin(angle) + plane[1] * cos(angle)) * cameraX;
 }
 
-bool Raycaster::PerformDDA(vec2 pos, vec2 mapPos, vec2 sideDist, vec2 deltaDist, vec2i step, bool &side, Tilemap &tilemap, TileType &hitTile) {
-	while (!hitTile && sideDist[0] + sideDist[1] < MAX_RAY_LENGTH) {
-        // Determine next position of ray using as a base which edge will be heat first
-		if (sideDist[0] < sideDist[1]) {
-			sideDist[0] += deltaDist[0];
-			mapPos[0] += step[0];
-			side = false;
-		} else {
-			sideDist[1] += deltaDist[1];
-			mapPos[1] += step[1];
-			side = true;
-		}
+bool Raycaster::PerformDDA(vec2i mapPos, vec2 sideDist, vec2 deltaDist, vec2i step, bool &side, Tilemap &tilemap, TileType &hitTile) {
+	vec2i initialPos = {mapPos[0], mapPos[1]};
 
-		SDL_SetRenderDrawColor(graphics.renderer, 0x00, 0xFF, 0x00, 0xFF);
-		SDL_RenderDrawLineF(graphics.renderer, pos[0], pos[1], mapPos[0], mapPos[1]);
+	// checks for hit tile and length of the ray
+	while (!hitTile && std::sqrt(std::pow(mapPos[0] - initialPos[0], 2) + std::pow(mapPos[1] - initialPos[1], 2)) < MAX_RAY_LENGTH) {
+        // Determine next position of ray using as a base which edge will be heat first
+        // axis will be either 0 (x) or 1 (y)
+        bool axis = (sideDist[0] >= sideDist[1]);
+		sideDist[axis] += deltaDist[axis];
+		mapPos[axis] += step[axis];
+		side = axis;
 
 		if (mapPos[0] >= 0 && mapPos[0] < tilemap.width
 		&& mapPos[1] >= 0 && mapPos[1] < tilemap.height) {
@@ -65,35 +61,33 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
 	};
 
     for (int x = 0; x < WINDOW_WIDTH; x++) {
-        vec2 rayDir, mapPos, deltaDist, sideDist;
+        TileType hitTile = TILES_EMPTY;
+        vec2i mapPos;
+        vec2 rayDir, deltaDist, sideDist;
         vec2i step;
         bool side;
 
-        // Calculate ray position and direction
         CalculateRayDirection(x, dir, rayDir);
 
-		mapPos[0] = pos[0];
-		mapPos[1] = pos[1];
-
-        deltaDist[0] = std::abs(1 / rayDir[0]);
-        deltaDist[1] = std::abs(1 / rayDir[1]);
-
-        sideDist[0] = (rayDir[0] < 0) ? (pos[0] - mapPos[0]) * deltaDist[0] : (mapPos[0] + 1.0 - pos[0]) * deltaDist[0];
-        sideDist[1] = (rayDir[1] < 0) ? (pos[1] - mapPos[1]) * deltaDist[1] : (mapPos[1] + 1.0 - pos[1]) * deltaDist[1];
-
-        step[0] = (rayDir[0] < 0) ? -1 : 1;
-        step[1] = (rayDir[1] < 0) ? -1 : 1;
-
-        TileType hitTile = TILES_EMPTY;
+		// perform calculations for x and y axis
+        for (int i = 0; i <= 1; i++) {
+			mapPos[i] = pos[i];
+        	deltaDist[i] = std::abs(1 / rayDir[i]);
+        	sideDist[i] = (rayDir[i] < 0) ? (pos[i] - mapPos[i]) * deltaDist[i] : (mapPos[i] + 1.0 - pos[i]) * deltaDist[i];
+        	step[i] = (rayDir[i] < 0) ? -1 : 1;
+        }
 
         // Start DDA
-        bool hit = PerformDDA(pos, mapPos, sideDist, deltaDist, step, side, tilemap, hitTile);
+        bool hit = PerformDDA(mapPos, sideDist, deltaDist, step, side, tilemap, hitTile);
+
+		SDL_SetRenderDrawColor(graphics.renderer, 0x00, 0xFF, 0x00, 0xFF);
+		SDL_RenderDrawLineF(graphics.renderer, pos[0], pos[1], mapPos[0], mapPos[1]);
 
         if (hit) {
 			// start and finish y coordinates
             vec2 line;
             double perpWallDist;
-            float lineHeight;
+            double lineHeight;
             unsigned int color;
             
             // Calculate Wall Distance
