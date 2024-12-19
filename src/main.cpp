@@ -6,7 +6,7 @@
 #include "graphics.hpp"
 #include "input.hpp"
 #include "player.hpp"
-#include "tiles.hpp"
+#include "tilemap.hpp"
 
 int main(void)
 {

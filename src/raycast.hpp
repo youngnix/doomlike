@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tiles.hpp"
+#include "tilemap.hpp"
 
 struct Raycaster {
 	vec2 plane;

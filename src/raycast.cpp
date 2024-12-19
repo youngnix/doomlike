@@ -1,6 +1,6 @@
 #include <SDL.h>
 #include "SDL_render.h"
-#include "tiles.hpp"
+#include "tilemap.hpp"
 #include "raycast.hpp"
 #include "graphics.hpp"
 #include <cmath>
