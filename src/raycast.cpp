@@ -30,24 +30,21 @@ void Raycaster::CalculateRayDirection(int x, vec2 dir, vec2 rayDir) {
 bool Raycaster::PerformDDA(vec2i mapPos, vec2 sideDist, vec2 deltaDist, vec2i step, bool &side, Tilemap &tilemap, TileType &hitTile) {
 	vec2i initialPos = {mapPos[0], mapPos[1]};
 
-	// checks for hit tile and length of the ray
-	while (!hitTile && std::sqrt(std::pow(mapPos[0] - initialPos[0], 2) + std::pow(mapPos[1] - initialPos[1], 2)) < MAX_RAY_LENGTH) {
-        // Determine next position of ray using as a base which edge will be heat first
-        // axis will be either 0 (x) or 1 (y)
+    // checks for hit tile and length of the ray
+    while (std::sqrt(std::pow(mapPos[0] - initialPos[0], 2) + std::pow(mapPos[1] - initialPos[1], 2)) < MAX_RAY_LENGTH) {
+        // Determine next position of ray based on which axis will be hit first
         bool axis = (sideDist[0] >= sideDist[1]);
-		sideDist[axis] += deltaDist[axis];
-		mapPos[axis] += step[axis];
-		side = axis;
+        sideDist[axis] += deltaDist[axis];
+        mapPos[axis] += step[axis];
+        side = axis;
 
-		if (mapPos[0] >= 0 && mapPos[0] < tilemap.width
-		&& mapPos[1] >= 0 && mapPos[1] < tilemap.height) {
-			// Check if ray has hit a wall
-			hitTile = tilemap.tiles[mapPos[1] * tilemap.width + mapPos[0]];
-
-			if (hitTile != TILES_EMPTY) {
-				return true;
-			}
-		}
+        // Check if ray has hit a wall
+        if (mapPos[0] >= 0 && mapPos[0] < tilemap.width && mapPos[1] >= 0 && mapPos[1] < tilemap.height) {
+            hitTile = tilemap.tiles[mapPos[1] * tilemap.width + mapPos[0]];
+            if (hitTile != TILES_EMPTY) {
+                return true;
+            }
+        }
     }
 
     return false;
