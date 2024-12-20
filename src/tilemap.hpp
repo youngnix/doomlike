@@ -3,29 +3,31 @@
 #include "util.hpp"
 #include <string>
 #include <vector>
+#include <SDL3/SDL.h>
 
-enum TileType
+enum TileType : int
 {
-    TILES_EMPTY,
-    TILES_BRICKS,
-    TILES_DIRT,
-    TILES_LIGHT,
-    TILES_COUNT,
+    Bricks,
+    Dirt,
+    Light,
+    Count,
 };
 
 class Tile
 {
 public:
     TileType type;
+    unsigned int color;
+    SDL_Surface *texture;
+
     Tile();
-    Tile(TileType type);
+    Tile(TileType type, unsigned int color, std::string texture_path);
 };
 
 class Tilemap
 {
 public:
     int width, height;
-	std::vector<TileType> tiles;
 
 	Tilemap();
 	Tilemap(std::vector<int> data);
@@ -33,5 +35,10 @@ public:
 
 	void Draw();
 	void LoadFromFile(std::string path);
-	void SetTile(vec2 pos, TileType type);
+	void SetTile(vec2i pos, TileType type);
+	Tile *GetTile(vec2i pos);
+	Tile *GetTile(int x, int y);
+private:
+	std::vector<Tile*> map;
+	std::vector<Tile> tiles;
 };

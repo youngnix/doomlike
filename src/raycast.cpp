@@ -1,3 +1,4 @@
+#include "SDL3/SDL_render.h"
 #include "tilemap.hpp"
 #include <SDL3/SDL.h>
 #include "raycast.hpp"
@@ -7,16 +8,8 @@
 // Put a limit do DDA dont run a infinite distance
 const float MAX_RAY_LENGTH = 100.0f;
 
-// Defining colors for tiles
-const unsigned int tileColors[] = {
-    0x00000000, // TILES_EMPTY
-    0xFF8F4DFF, // TILES_BRICKS
-    0xFF8F4DFF, // TILES_DIRT
-    0xFFFFBDFF, // TILES_LIGHT
-};
-
 // Constructors using Initialization List
-Raycaster::Raycaster() : plane{0, 0.66} {}
+Raycaster::Raycaster() : plane{0, 0.50} {}
 Raycaster::Raycaster(float planeX, float planeY) : plane{planeX, planeY} {}
 
 void Raycaster::CalculateRayDirection(int x, vec2 dir, vec2 rayDir) {
@@ -27,7 +20,7 @@ void Raycaster::CalculateRayDirection(int x, vec2 dir, vec2 rayDir) {
     rayDir[1] = dir[1] + (plane[0] * sin(angle) + plane[1] * cos(angle)) * cameraX;
 }
 
-bool Raycaster::PerformDDA(vec2i mapPos, vec2 sideDist, vec2 deltaDist, vec2i step, bool &side, Tilemap &tilemap, TileType &hitTile) {
+bool Raycaster::PerformDDA(vec2i mapPos, vec2 sideDist, vec2 deltaDist, vec2i step, bool &side, Tilemap &tilemap, Tile *&hitTile) {
 	vec2i initialPos = {mapPos[0], mapPos[1]};
 
 	// checks for hit tile and length of the ray
@@ -39,14 +32,11 @@ bool Raycaster::PerformDDA(vec2i mapPos, vec2 sideDist, vec2 deltaDist, vec2i st
 		mapPos[axis] += step[axis];
 		side = axis;
 
-		if (mapPos[0] >= 0 && mapPos[0] < tilemap.width
-		&& mapPos[1] >= 0 && mapPos[1] < tilemap.height) {
-			// Check if ray has hit a wall
-			hitTile = tilemap.tiles[mapPos[1] * tilemap.width + mapPos[0]];
+		// Check if ray has hit a wall
+		hitTile = tilemap.GetTile(mapPos);
 
-			if (hitTile != TILES_EMPTY) {
-				return true;
-			}
+		if (hitTile) {
+			return true;
 		}
     }
 
@@ -60,7 +50,7 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
 	};
 
     for (int x = 0; x < WINDOW_WIDTH; x++) {
-        TileType hitTile = TILES_EMPTY;
+        Tile *hitTile = NULL;
         vec2i mapPos;
         vec2 rayDir, deltaDist, sideDist;
         vec2i step;
@@ -84,9 +74,9 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
 
         if (hit) {
 			// start and finish y coordinates
-            vec2 line;
+            vec2i line;
             double perpWallDist;
-            double lineHeight;
+            int lineHeight;
             unsigned int color;
             
             // Calculate Wall Distance
@@ -95,17 +85,42 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
             perpWallDist = sideDist[side] - deltaDist[side];
 
             // Determine the Height of the Line that will be drawn
-            lineHeight = std::min(WINDOW_WIDTH / perpWallDist, WINDOW_WIDTH);
+            lineHeight = std::min(int(WINDOW_HEIGHT / perpWallDist), WINDOW_HEIGHT);
 
-            line[0] = std::max(-lineHeight / 2 + WINDOW_WIDTH / 2, 0.0);
-            line[1] = std::min(lineHeight / 2 + WINDOW_WIDTH / 2, WINDOW_WIDTH - 1);
+            line[0] = std::max(-lineHeight / 2 + WINDOW_HEIGHT / 2, 0);
+            line[1] = std::min(lineHeight / 2 + WINDOW_HEIGHT / 2, WINDOW_HEIGHT - 1);
 
-			color = tileColors[hitTile];
+            // side is inverted here
+            double wallX = mapPos[!side] + perpWallDist * rayDir[!side];
 
-			// side will bitshift colors so that they're halved
-			SDL_SetRenderDrawColor(graphics.renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
+            wallX -= int(wallX);
 
-			SDL_RenderLine(graphics.renderer, x, line[0], x, line[1]);
+            int texX;
+            texX = int(wallX * double(hitTile->texture->w));
+
+            if ((!side && rayDir[0] > 0) || (side && rayDir[1] < 0)) {
+            	texX = hitTile->texture->w - texX - 1;
+            }
+
+            double texStep = double(hitTile->texture->h) / lineHeight;
+
+            double texPos = (line[0] - WINDOW_HEIGHT / 2 + lineHeight / 2) * texStep;
+
+            for (int y = line[0]; y < line[1]; y++) {
+				int texY = (int)texPos & (hitTile->texture->h - 1);
+				texPos += texStep;
+
+				color = ((unsigned int *)hitTile->texture->pixels)[hitTile->texture->w * texY + texX];
+
+				// side will bitshift colors so that they're halved
+				SDL_SetRenderDrawColor(graphics.renderer,
+ 						   ((color >> 24) & 0xff) >> side,
+ 						   ((color >> 16) & 0xff) >> side,
+ 						   ((color >> 8) & 0xff) >> side,
+ 						   (color & 0xff) >> side);
+
+				SDL_RenderPoint(graphics.renderer, x, y);
+            }
 		}
 	}
 }
