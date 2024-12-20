@@ -5,10 +5,10 @@
 #include <cmath>
 
 // Put a limit do DDA dont run a infinite distance
-const float MAX_RAY_LENGTH = 100.0f;
+constexpr float MAX_RAY_LENGTH = 100.0f;
 
 // Defining colors for tiles
-const unsigned int tileColors[] = {
+constexpr unsigned int tileColors[] = {
     0x00000000, // TILES_EMPTY
     0xFF8F4DFF, // TILES_BRICKS
     0xFF8F4DFF, // TILES_DIRT
@@ -20,8 +20,8 @@ Raycaster::Raycaster() : plane{0, 0.66} {}
 Raycaster::Raycaster(float planeX, float planeY) : plane{planeX, planeY} {}
 
 void Raycaster::CalculateRayDirection(int x, vec2 dir, vec2 rayDir) {
-    double cameraX = 2 * x / double(WINDOW_WIDTH) - 1;
-    double angle = std::atan2(dir[1], dir[0]);
+    const double cameraX = 2 * x / static_cast<double>(WINDOW_WIDTH) - 1;
+    const double angle = std::atan2(dir[1], dir[0]);
 
     rayDir[0] = dir[0] + (plane[0] * cos(angle) - plane[1] * sin(angle)) * cameraX;
     rayDir[1] = dir[1] + (plane[0] * sin(angle) + plane[1] * cos(angle)) * cameraX;
@@ -51,10 +51,7 @@ bool Raycaster::PerformDDA(vec2i mapPos, vec2 sideDist, vec2 deltaDist, vec2i st
 }
 
 void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
-	vec2 dir = {
-		std::sin(angle),
-		-std::cos(angle),
-	};
+	vec2 dir = {std::sin(angle), -std::cos(angle)};
 
     for (int x = 0; x < WINDOW_WIDTH; x++) {
         TileType hitTile = TILES_EMPTY;
@@ -100,8 +97,7 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
 			color = tileColors[hitTile];
 
 			// side will bitshift colors so that they're halved
-			SDL_SetRenderDrawColor(graphics.renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
-
+			SDL_SetRenderDrawColor(graphics.renderer, ((color >> 24) & 0xff) >> static_cast<int>(side), ((color >> 16) & 0xff) >> static_cast<int>(side), ((color >> 8) & 0xff) >> static_cast<int>(side), (color & 0xff) >> static_cast<int>(side));
 			SDL_RenderLine(graphics.renderer, x, line[0], x, line[1]);
 		}
 	}

@@ -11,62 +11,57 @@ int main(void)
 {
     bool running = true;
 
-    // Initialize the player
+    // Initialize the player and input components
     Player player;
 	Input::Input input;
+    Tilemap tilemap("./res/map01.txt");
 
-	Tilemap tilemap("./res/map01.txt");
-
-    double startTime = (double)SDL_GetPerformanceCounter() / SDL_GetPerformanceFrequency() / 1000.0;
+    // Define timer  to deltaTime
+    const double frequency = SDL_GetPerformanceFrequency();
+    double startTime = SDL_GetPerformanceCounter() / frequency;
     double endTime = startTime;
-    double deltaTime = INFINITY;
-    // Main Loop that have the responsibility to update the Delta Time, update the Player and render this in the window
-    while (running)
-    {
-    	deltaTime = (endTime - startTime) / SDL_GetPerformanceFrequency();
-    	startTime = SDL_GetPerformanceCounter();
 
-    	SDL_Event event;
-    	input.Update();
+    // Main Loop that have the responsibility to update the Delta Time, update the Player and render this in the window
+    while (running) {
+        // Calculate deltaTime
+    	const double deltaTime = (endTime - startTime) / frequency;
+        startTime = SDL_GetPerformanceCounter();
+
+        SDL_Event event;
+        input.Update();
         
-        // Window Events that for now we have just the close event
-        while (SDL_PollEvent(&event))
-        {
+        while (SDL_PollEvent(&event)) {
             switch (event.type) {
-            case SDL_EVENT_MOUSE_BUTTON_DOWN: 
-            	input.EventMouseButtonDown(event);
-            	break;
-            case SDL_EVENT_MOUSE_MOTION:
-            	input.EventMouseMotion(event);
-            	break;
-            case SDL_EVENT_KEY_DOWN:
-            	input.EventKeyDown(event);
-            	break;
-            case SDL_EVENT_KEY_UP:
-            	input.EventKeyUp(event);
-            	break;
-            case SDL_EVENT_QUIT: {
-                running = false;
-                break;
-            }
-            default:
-                break;
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                    input.EventMouseButtonDown(event);
+                    break;
+                case SDL_EVENT_MOUSE_MOTION:
+                    input.EventMouseMotion(event);
+                    break;
+                case SDL_EVENT_KEY_DOWN:
+                    input.EventKeyDown(event);
+                    break;
+                case SDL_EVENT_KEY_UP:
+                    input.EventKeyUp(event);
+                    break;
+                case SDL_EVENT_QUIT:
+                    running = false;
+                    break;
+                default:
+                    break;
             }
         }
 
         player.Update(input, deltaTime);
-
 		graphics.Begin();
-
         player.Draw();
         tilemap.Draw();
-
     	player.raycaster.Draw(player.pos, player.kinematics.angle, tilemap);
-
 		graphics.End();
-
     	endTime = SDL_GetPerformanceCounter();
+
     }
 
     return 0;
+
 }

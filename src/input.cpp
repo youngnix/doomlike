@@ -1,4 +1,5 @@
 #include "input.hpp"
+#include <vector>
 #include <cstdio>
 
 Input::Input::Input() {
@@ -7,36 +8,32 @@ Input::Input::Input() {
 }
 
 void Input::Input::Update() {
-	mouseRel[0] = 0;
-	mouseRel[1] = 0;
+	mouseRel[0] = mouseRel[1] = 0;
 
-	for (int i = 0; i < SDL_BUTTON_X2; i++) {
-		if (mouse[i] == KeyFlag::Released) {
-			mouse[i] = KeyFlag::Unpressed;
-		}
+    // Update Mouse State
+    for (int i = 0; i < SDL_BUTTON_X2; ++i) {
+        if (mouse[i] == KeyFlag::Released) {
+            mouse[i] = KeyFlag::Unpressed;
+        }
+        if (mouse[i] & KeyFlag::Pressed) {
+            mouse[i] &= ~KeyFlag::Pressed;
+        }
+    }
 
-		if (mouse[i] & KeyFlag::Pressed) {
-			mouse[i] &= ~KeyFlag::Pressed;
-		}
-	}
-
-	for (int i = 0; i < SDL_SCANCODE_COUNT; i++) {
-		// If key released, turn off all flags
-		if (keyboard[i] == KeyFlag::Released) {
-			keyboard[i] = KeyFlag::Unpressed;
-		}
-
-		// If pressed bitfield is on, disable it
-		if (keyboard[i] & KeyFlag::Pressed) {
-			keyboard[i] &= ~KeyFlag::Pressed;
-		}
-	}
+    // Update Keyboard State
+    for (int i = 0; i < SDL_SCANCODE_COUNT; ++i) {
+        if (keyboard[i] == KeyFlag::Released) {
+            keyboard[i] = KeyFlag::Unpressed;
+        }
+        if (keyboard[i] & KeyFlag::Pressed) {
+            keyboard[i] &= ~KeyFlag::Pressed;
+        }
+    }
 }
 
 void Input::Input::EventKeyDown(SDL_Event &event) {
 	// turns pressed and held bitfields on
-	if (!event.key.repeat)
-	{
+	if (!event.key.repeat) {
 		keyboard[event.key.scancode] |= KeyFlag::Pressed | KeyFlag::Held;
 	}
 }

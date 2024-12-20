@@ -10,6 +10,7 @@ struct Graphics {
 	SDL_Window *window;
 
 	Graphics();
+	~Graphics();
 
 	void Begin();
 	void End();

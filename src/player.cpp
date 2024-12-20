@@ -6,27 +6,31 @@
 #include "kinematics.hpp"
 #include <cmath>
 
-#define PI 3.1415926
+namespace MathUtils {
+    constexpr float PI = 3.1415926;
+    inline float rad_to_deg(float rad) {
+	    return rad * 180 / PI;
+    }
 
-static float rad_to_deg(float rad) {
-	return rad * 180 / PI;
-}
-
-static float deg_to_rad(float deg) {
-	return deg * PI / 180.0;
+    inline float deg_to_rad(float deg) {
+	    return deg * PI / 180.0;
+    }
 }
 
 // Player contructor and enable the kinematics of the character with speed of 300, 1.2 of acceleration and 0.6 of desacceleration
-Player::Player() : kinematics(10, 1.2, 0.6) {
-	this->pos[0] = 1;
-	this->pos[1] = 1;
-	kinematics.angle = deg_to_rad(90);
+Player::Player() : kinematics(10, 1.2, 0.6), pos{10.0f, 10.0f} {
+	kinematics.angle = MathUtils::deg_to_rad(90);
 
+    // Create surface and texture to player
 	SDL_Surface *surf = SDL_CreateSurface(16, 16, SDL_PIXELFORMAT_RGBA32);
+    if (!surf) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SURFACE_ERROR: %s", SDL_GetError());
+        return;
+    }
 
 	SDL_FillSurfaceRect(surf, NULL, 0xFFFFFFFF);
-
 	texture_2d = SDL_CreateTextureFromSurface(graphics.renderer, surf);
+    SDL_DestroySurface(surf);
 }
 
 void Player::Update(Input::Input &input, float delta) {
@@ -36,29 +40,27 @@ void Player::Update(Input::Input &input, float delta) {
         static_cast<float>(input.keyHeld(SDL_SCANCODE_S) - input.keyHeld(SDL_SCANCODE_W)),
     };
 
-    float rotate = deg_to_rad(-input.mouseRel[0]) * 0.5;
+    float rotate = MathUtils::deg_to_rad(-input.mouseRel[0]) * 0.5;
+    kinematics.angle -= rotate;
 
-    if (input.keyPressed(SDL_SCANCODE_ESCAPE))
-    {
+    if (input.keyPressed(SDL_SCANCODE_ESCAPE)) {
+        SDL_SetWindowRelativeMouseMode(graphics.window, false);
+        SDL_ShowCursor();
+    }
+
+    if (input.buttonPressed(SDL_BUTTON_LEFT)) {
     	SDL_SetWindowRelativeMouseMode(graphics.window, true);
+        SDL_HideCursor();
     }
 
-    if (input.buttonPressed(SDL_BUTTON_LEFT))
-    {
-    	SDL_SetWindowRelativeMouseMode(graphics.window, false);
-    }
-
-    this->kinematics.angle -= rotate;
-
-    this->kinematics.Apply(delta, direction);
-
+    kinematics.Apply(delta, direction);
     pos[0] += kinematics.velocity[0];
     pos[1] += kinematics.velocity[1];
+
 }
 
 void Player::Draw() {
-    SDL_FRect rect = {pos[0], pos[1], 1, 1};
-    SDL_FPoint center = {rect.w / 2, rect.h/2};
-
-    SDL_RenderTextureRotated(graphics.renderer, texture_2d, NULL, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
+    SDL_FRect rect = {pos[0], pos[1], 1.0f, 1.0f};
+    SDL_FPoint center = {rect.w / 2.0f, rect.h/2.0f};
+    SDL_RenderTextureRotated(graphics.renderer, texture_2d, nullptr, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
 }
