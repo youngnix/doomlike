@@ -1,7 +1,6 @@
+#include <SDL3/SDL.h>
 #include "player.hpp"
-#include "SDL_mouse.h"
-#include "SDL_render.h"
-#include "SDL_surface.h"
+#include "SDL3/SDL_render.h"
 #include "graphics.hpp"
 #include "input.hpp"
 #include "kinematics.hpp"
@@ -23,13 +22,11 @@ Player::Player() : kinematics(10, 1.2, 0.6) {
 	this->pos[1] = 1;
 	kinematics.angle = deg_to_rad(90);
 
-	SDL_Surface *surf = SDL_CreateRGBSurface(0, 16, 16, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+	SDL_Surface *surf = SDL_CreateSurface(16, 16, SDL_PIXELFORMAT_RGBA32);
 
-	SDL_FillRect(surf, NULL, 0xFFFFFFFF);
+	SDL_FillSurfaceRect(surf, NULL, 0xFFFFFFFF);
 
 	texture_2d = SDL_CreateTextureFromSurface(graphics.renderer, surf);
-
-	SDL_FreeSurface(surf);
 }
 
 void Player::Update(Input::Input &input, float delta) {
@@ -43,12 +40,12 @@ void Player::Update(Input::Input &input, float delta) {
 
     if (input.keyPressed(SDL_SCANCODE_ESCAPE))
     {
-    	SDL_SetRelativeMouseMode(SDL_FALSE);
+    	SDL_SetWindowRelativeMouseMode(graphics.window, true);
     }
 
     if (input.buttonPressed(SDL_BUTTON_LEFT))
     {
-    	SDL_SetRelativeMouseMode(SDL_TRUE);
+    	SDL_SetWindowRelativeMouseMode(graphics.window, false);
     }
 
     this->kinematics.angle -= rotate;
@@ -63,5 +60,5 @@ void Player::Draw() {
     SDL_FRect rect = {pos[0], pos[1], 1, 1};
     SDL_FPoint center = {rect.w / 2, rect.h/2};
 
-    SDL_RenderCopyExF(graphics.renderer, texture_2d, NULL, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
+    SDL_RenderTextureRotated(graphics.renderer, texture_2d, NULL, &rect, kinematics.angle, &center, SDL_FLIP_NONE);
 }

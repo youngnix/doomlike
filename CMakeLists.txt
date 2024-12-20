@@ -13,9 +13,9 @@ project(doomlike
 	VERSION 0.1.0
 	LANGUAGES CXX)
 
-find_package(SDL2 REQUIRED)
+add_subdirectory(vendor/SDL3 EXCLUDE_FROM_ALL)
 
 add_executable(${PROJECT_NAME} src/main.cpp src/player.cpp src/kinematics.cpp src/tiles.cpp src/raycast.cpp src/input.cpp src/graphics.cpp)
 
-target_include_directories(${PROJECT_NAME} PRIVATE vendor/SDL2/include/)
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL2main SDL2)
+target_include_directories(${PROJECT_NAME} PRIVATE vendor/SDL/include/)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)

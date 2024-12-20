@@ -1,8 +1,7 @@
-#include <SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL.h>
+#include <cassert>
 #include <cmath>
-#include "SDL_events.h"
-#include "SDL_render.h"
-#include "SDL_timer.h"
 #include "graphics.hpp"
 #include "input.hpp"
 #include "player.hpp"
@@ -34,19 +33,19 @@ int main(void)
         while (SDL_PollEvent(&event))
         {
             switch (event.type) {
-            case SDL_MOUSEBUTTONDOWN: 
+            case SDL_EVENT_MOUSE_BUTTON_DOWN: 
             	input.EventMouseButtonDown(event);
             	break;
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
             	input.EventMouseMotion(event);
             	break;
-            case SDL_KEYDOWN:
+            case SDL_EVENT_KEY_DOWN:
             	input.EventKeyDown(event);
             	break;
-            case SDL_KEYUP:
+            case SDL_EVENT_KEY_UP:
             	input.EventKeyUp(event);
             	break;
-            case SDL_QUIT: {
+            case SDL_EVENT_QUIT: {
                 running = false;
                 break;
             }

@@ -1,9 +1,9 @@
 #include "tiles.hpp"
-#include "SDL_render.h"
 #include "graphics.hpp"
 #include <cstdlib>
 #include <fstream>
 #include <cmath>
+#include <SDL3/SDL.h>
 
 Tile::Tile() {
 	this->type = TILES_EMPTY;
@@ -91,9 +91,9 @@ void Tilemap::Draw() {
 				continue;
 			}
 
-			SDL_Rect rect = {
-				j,
-				i,
+			SDL_FRect rect = {
+				(float)j,
+				(float)i,
 				1,
 				1,
 			};
