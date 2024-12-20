@@ -1,6 +1,5 @@
-#include <SDL.h>
-#include "SDL_render.h"
 #include "tilemap.hpp"
+#include <SDL3/SDL.h>
 #include "raycast.hpp"
 #include "graphics.hpp"
 #include <cmath>
@@ -81,7 +80,7 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
         bool hit = PerformDDA(mapPos, sideDist, deltaDist, step, side, tilemap, hitTile);
 
 		SDL_SetRenderDrawColor(graphics.renderer, 0x00, 0xFF, 0x00, 0xFF);
-		SDL_RenderDrawLineF(graphics.renderer, pos[0], pos[1], mapPos[0], mapPos[1]);
+		SDL_RenderLine(graphics.renderer, pos[0], pos[1], mapPos[0], mapPos[1]);
 
         if (hit) {
 			// start and finish y coordinates
@@ -106,7 +105,7 @@ void Raycaster::Draw(vec2 pos, float angle, Tilemap &tilemap) {
 			// side will bitshift colors so that they're halved
 			SDL_SetRenderDrawColor(graphics.renderer, ((color >> 24) & 0xff) >> side, ((color >> 16) & 0xff) >> side, ((color >> 8) & 0xff) >> side, (color & 0xff) >> side);
 
-			SDL_RenderDrawLineF(graphics.renderer, x, line[0], x, line[1]);
+			SDL_RenderLine(graphics.renderer, x, line[0], x, line[1]);
 		}
 	}
 }

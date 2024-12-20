@@ -1,17 +1,16 @@
 #include "graphics.hpp"
-#include "SDL_mouse.h"
-#include "SDL_render.h"
-#include "SDL_video.h"
+#include "SDL3/SDL_mouse.h"
+#include <cassert>
 
 Graphics graphics;
 
 Graphics::Graphics() {
-	SDL_Init(SDL_INIT_VIDEO);
+	assert(SDL_Init(SDL_INIT_VIDEO));
 
-	window = SDL_CreateWindow("DOOMLIKE", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	window = SDL_CreateWindow("DOOMLIKE", WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+	renderer = SDL_CreateRenderer(window, "opengl");
 
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetWindowRelativeMouseMode(window, true);
 }
 
 void Graphics::Begin() {

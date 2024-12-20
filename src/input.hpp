@@ -1,8 +1,7 @@
 #pragma once
 
-#include "SDL_mouse.h"
 #include "util.hpp"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <cstdlib>
 
 namespace Input {
